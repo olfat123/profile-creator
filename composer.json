@@ -1,0 +1,19 @@
+{
+    "name": "olfat/profile-creator",
+    "description": "Profile Creator Plugin",
+    "type": "wordpress-plugin",
+    "require": {
+        "php": ">=7.4",
+        "composer/installers": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ProfileCreator\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    }
+}

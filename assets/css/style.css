@@ -1,0 +1,74 @@
+.cpc-profile-form {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.cpc-profile-form .wp-editor-wrap {
+    margin-bottom: 1rem;
+}
+
+.cpc-education-repeater {
+    background: #f8f9fa;
+}
+
+.education-entry {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 15px;
+}
+
+.education-entry:last-child {
+    border-bottom: none;
+}
+
+.cpc-services,
+.cpc-sectors {
+    background: #f8f9fa;
+}
+
+.cpc-parent-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.cpc-services .form-check,
+.cpc-sectors .form-check {
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.cpc-services .toggle-btn,
+.cpc-sectors .toggle-btn {
+    text-decoration: none;
+    color: #0d6efd;
+    padding: 0;
+    line-height: 1;
+    width: 15px;
+    text-align: center;
+}
+
+.cpc-services .toggle-icon,
+.cpc-sectors .toggle-icon {
+    display: block;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.cpc-services .placeholder-icon,
+.cpc-sectors .placeholder-icon {
+    width: 15px;
+    display: inline-block;
+}
+
+/* Fix Select2 with Bootstrap */
+.select2-container--bootstrap-5 .select2-selection {
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0.75rem;
+}
+
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
+    margin: 0;
+}
