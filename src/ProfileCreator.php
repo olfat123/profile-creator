@@ -30,9 +30,30 @@ class ProfileCreator {
 
     private function setup_hooks() {
         foreach ( $this->form_handlers as $type => $handler ) {
-            add_shortcode( "cpc_{$type}_form", array( $handler, 'render_form' ) );
-            add_action( 'init', array( $handler, 'process_form' ) );
-        }
+			// Use a closure to handle shortcode rendering and form processing.
+			add_shortcode(
+				"cpc_{$type}_form",
+				function ( $atts ) use ( $handler, $type ) {
+					// Normalize $atts to an empty array if not provided.
+					$atts = shortcode_atts( array(), $atts, "cpc_{$type}_form" );
+
+					// If form is submitted, process it and capture output.
+					if ( isset( $_POST['cpc_submit'] ) && isset( $_POST['cpc_type'] ) && $_POST['cpc_type'] === $handler->get_type() ) {
+						ob_start();
+						$handler->process_form();
+						return ob_get_clean();
+					}
+
+					// Otherwise, render the form with empty arrays for errors and submitted data.
+					return $handler->render_form( array(), array() );
+				}
+			);
+			add_action( 'init', array( $handler, 'process_form' ) );
+		}
+        // foreach ( $this->form_handlers as $type => $handler ) {
+        //     add_shortcode( "cpc_{$type}_form", array( $handler, 'render_form' ) );
+        //     add_action( 'init', array( $handler, 'process_form' ) );
+        // }
         // add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
         add_action( 'wp_nav_menu_items', array( $this, 'add_profile_menu_items' ), 10, 2 );
     }
