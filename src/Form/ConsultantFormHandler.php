@@ -99,8 +99,9 @@ class ConsultantFormHandler extends FormHandler {
 	 * Render service checkboxes with hierarchical structure.
 	 */
 	private function render_service_checkboxes() {
-		$services         = $this->get_hierarchical_services();
-		$selected_services = (array) ( $this->submitted_data['cpc_services'] ?? array() );
+		$services             = $this->get_hierarchical_services();
+		$selected_services    = ( array ) ( $this->submitted_data['cpc_services'] ?? array() );
+		$selected_subservices = ( array ) ( $this->submitted_data['cpc_subservices'] ?? array() );
 
 		foreach ( $services as $service ) {
 			$collapse_id = "service-collapse-{$service['id']}";
@@ -132,11 +133,11 @@ class ConsultantFormHandler extends FormHandler {
 							<div class="form-check">
 								<input class="form-check-input service-checkbox" 
 									type="checkbox" 
-									name="cpc_services[]" 
+									name="cpc_subservices[]" 
 									value="<?php echo esc_attr( $child['id'] ); ?>"
 									id="service-<?php echo esc_attr( $child['id'] ); ?>"
 									data-parent="<?php echo esc_attr( $child['parent_id'] ); ?>"
-									<?php echo in_array( $child['id'], $selected_services ) ? 'checked' : ''; ?>>
+									<?php echo in_array( $child['id'], $selected_subservices ) ? 'checked' : ''; ?>>
 								<label class="form-check-label" for="service-<?php echo esc_attr( $child['id'] ); ?>">
 									<?php echo esc_html( $child['service'] ); ?>
 								</label>
@@ -153,8 +154,9 @@ class ConsultantFormHandler extends FormHandler {
 	 * Render sector checkboxes with hierarchical structure.
 	 */
 	private function render_sector_checkboxes() {
-		$sectors         = $this->get_hierarchical_sectors();
-		$selected_sectors = (array) ( $this->submitted_data['cpc_sectors'] ?? array() );
+		$sectors             = $this->get_hierarchical_sectors();
+		$selected_sectors    = ( array ) ( $this->submitted_data['cpc_sectors'] ?? array() );
+		$selected_subsectors = ( array ) ( $this->submitted_data['cpc_subsectors'] ?? array() );
 
 		foreach ( $sectors as $sector ) {
 			$collapse_id = "sector-collapse-{$sector['ID']}";
@@ -189,11 +191,11 @@ class ConsultantFormHandler extends FormHandler {
 								<span class="me-2 placeholder-icon"> </span>
 								<input class="form-check-input sector-checkbox me-2" 
 									type="checkbox" 
-									name="cpc_sectors[]" 
+									name="cpc_subsectors[]" 
 									value="<?php echo esc_attr( $child['ID'] ); ?>"
 									id="sector-<?php echo esc_attr( $child['ID'] ); ?>"
 									data-parent="<?php echo esc_attr( $child['sector_id'] ); ?>"
-									<?php echo in_array( $child['ID'], $selected_sectors ) ? 'checked' : ''; ?>>
+									<?php echo in_array( $child['ID'], $selected_subsectors ) ? 'checked' : ''; ?>>
 								<label class="form-check-label" for="sector-<?php echo esc_attr( $child['ID'] ); ?>">
 									<?php echo esc_html( $child['subsector'] ); ?>
 								</label>
@@ -281,7 +283,12 @@ class ConsultantFormHandler extends FormHandler {
 
         if ( ! empty( $errors ) ) {
             $this->errors         = $errors;
-			$this->submitted_data = $submitted_data;            
+			$this->submitted_data = $submitted_data;
+            error_log( 'Validation errors found: ' . print_r( $errors, true ) );
+            // Re-render the form with errors and submitted data.
+            if ( ! headers_sent() ) {
+                ob_start();
+            }
             echo $this->render_form( $errors, $submitted_data ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             return;
         }
@@ -294,6 +301,8 @@ class ConsultantFormHandler extends FormHandler {
         if ( is_wp_error( $user_id ) ) {
             $error_code = $user_id->get_error_code();
             $error_message = $user_id->get_error_message( $error_code );
+            error_log( 'User creation failed: ' . $error_message );
+            error_log('submission_data'. print_r($submitted_data, true));
             // Handle specific error codes
             $this->errors = array(); 
 
@@ -322,8 +331,11 @@ class ConsultantFormHandler extends FormHandler {
 
         $this->errors = array(); 
 
-        $photo_id = $this->handle_file_upload( 'cpc_photo', $user_id );
-        $cv_id    = $this->handle_file_upload( 'cpc_cv', $user_id );
+        $photo_id  = $this->handle_file_upload( 'cpc_photo', $user_id );
+        $photo_url = wp_get_attachment_url( $photo_id );
+
+        $cv_id  = $this->handle_file_upload( 'cpc_cv', $user_id );
+        $cv_url = wp_get_attachment_url( $cv_id );
 
         $post_id = wp_insert_post(
             array(
@@ -339,6 +351,8 @@ class ConsultantFormHandler extends FormHandler {
             set_post_thumbnail( $post_id, $photo_id );
         }
 
+        update_post_meta( $post_id, 'consult_photo', $photo_url );
+        update_post_meta( $post_id, 'consult_cv', $cv_url );
         $this->save_meta_data( $user_id, $post_id );
 
         wp_set_current_user( $user_id );
@@ -455,16 +469,11 @@ class ConsultantFormHandler extends FormHandler {
 				$value = in_array( $key, array( 'cpc_qualifications', 'cpc_clients' ), true )
 					? wp_kses_post( $_POST[ $key ] )
 					: ( 'cpc_education' === $key ? $this->sanitize_education( $_POST[ $key ] )
-						: ( 'cpc_services' === $key ? array_map( 'intval', $_POST[ $key ] )
-							: sanitize_text_field( $_POST[ $key ] ) ) );
+						: $_POST[ $key ] );
 				update_post_meta( $post_id, $meta_key, $value );
 			}
 		}
 
-		$cv_id = get_post_meta( $post_id, 'cpc_cv_id', true );
-		if ( $cv_id ) {
-			update_post_meta( $post_id, 'cpc_cv_id', $cv_id );
-		}
 	}
 
 	/**
