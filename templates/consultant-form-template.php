@@ -121,8 +121,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<label for="cpc_gender" class="form-label"><?php esc_html_e( 'Gender', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
 			<select id="cpc_gender" name="cpc_gender" class="form-select <?php echo isset( $errors['cpc_gender'] ) ? 'is-invalid' : ''; ?>" required>
 				<option value=""><?php esc_html_e( 'Select Gender', 'profile-creator' ); ?></option>
-				<option value="male" <?php echo ( $submitted_data['cpc_gender'] ?? '' ) === 'male' ? 'selected' : ''; ?>><?php esc_html_e( 'Male', 'profile-creator' ); ?></option>
-				<option value="female" <?php echo ( $submitted_data['cpc_gender'] ?? '' ) === 'female' ? 'selected' : ''; ?>><?php esc_html_e( 'Female', 'profile-creator' ); ?></option>
+				<option value="Male" <?php echo ( $submitted_data['cpc_gender'] ?? '' ) === 'Male' ? 'selected' : ''; ?>><?php esc_html_e( 'Male', 'profile-creator' ); ?></option>
+				<option value="Female" <?php echo ( $submitted_data['cpc_gender'] ?? '' ) === 'Female' ? 'selected' : ''; ?>><?php esc_html_e( 'Female', 'profile-creator' ); ?></option>
 			</select>
 			<?php if ( isset( $errors['cpc_gender'] ) ) : ?>
 				<div class="invalid-feedback"><?php echo esc_html( $errors['cpc_gender'] ); ?></div>
@@ -199,14 +199,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 							value="<?php echo esc_attr( $entry['field'] ?? '' ); ?>">
 					</div>
 					<div class="col-md-3 mb-2">
-						<label class="form-label"><?php esc_html_e( 'Start Date', 'profile-creator' ); ?></label>
-						<input type="date" class="form-control" name="cpc_education[<?php echo esc_attr( $index ); ?>][start_date]" 
-							value="<?php echo esc_attr( $entry['start_date'] ?? '' ); ?>">
+						<label class="form-label"><?php esc_html_e( 'Start Date', 'profile-creator' ); ?></label>						
+						<select class="form-select" name="cpc_education[<?php echo esc_attr( $index ); ?>][start_date]" style="padding: 7px 20px;">
+							<option>Select Year</option>
+							<?php
+							for ( $i = date( "Y" ) - 70; $i <= date( "Y" ) + 7; $i++ ) {
+								?>
+								<option value="<?php echo $i ;?>" <?php isset( $entry['start_date'] ) && $i == $entry['start_date'] ? 'selected' : ''; ?> ><?php echo $i ;?></option>
+								<?php
+							}
+							?>
+						</select>	
 					</div>
 					<div class="col-md-3 mb-2">
-						<label class="form-label"><?php esc_html_e( 'End Date', 'profile-creator' ); ?></label>
-						<input type="date" class="form-control" name="cpc_education[<?php echo esc_attr( $index ); ?>][end_date]" 
-							value="<?php echo esc_attr( $entry['end_date'] ?? '' ); ?>">
+						<label class="form-label"><?php esc_html_e( 'End Date  (or expected)', 'profile-creator' ); ?></label>
+						<select class="form-select" name="cpc_education[<?php echo esc_attr( $index ); ?>][end_date]" style="padding: 7px 20px;" >
+							<option>Select Year</option>
+							<?php
+							for ( $i = date( "Y" ) - 70; $i <= date( "Y" ) + 7; $i++ ) {
+								?>
+								<option value="<?php echo $i ;?>" <?php isset( $entry['end_date'] ) && $i == $entry['end_date'] ? 'selected' : ''; ?> ><?php echo $i ;?></option>
+								<?php
+							}
+							?>
+						</select>	
 					</div>
 				</div>
 				<button type="button" class="btn btn-danger btn-sm remove-education mt-2"><?php esc_html_e( 'Remove', 'profile-creator' ); ?></button>

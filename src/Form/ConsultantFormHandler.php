@@ -86,7 +86,15 @@ class ConsultantFormHandler extends FormHandler {
 		$this->submitted_data = $submitted_data_to_use;
 		
 		if ( is_user_logged_in() ) {
-			return '<div class="alert alert-info">' . esc_html__( 'You already have an account.', 'profile-creator' ) . '</div>';
+			$current_user = wp_get_current_user();
+			$consultant_submitted_posts = get_user_meta( $current_user->ID, 'consultant_submitted_posts' );
+			if ( is_array( $consultant_submitted_posts ) )
+				$consultant_submitted_posts = end( $consultant_submitted_posts );
+			if ( $consultant_submitted_posts && ! is_null( get_post( $consultant_submitted_posts ) ) )
+				return '<div class="membership-success-message text-center mt-4" style="margin: auto;"><h2>' . esc_html__( 'You have already created a profile.', 'profile-creator' ).'</h2>
+                <p style="font-size:15px">Do you want to <a style="color:#61c2e2;" href="'.get_permalink(21999).'">update your profile?</a></p>
+                <br> </div>';
+
 		}
 
 		// Start output buffering and include the template.
@@ -297,37 +305,43 @@ class ConsultantFormHandler extends FormHandler {
         $email = sanitize_email( $_POST['cpc_email'] );
         $bio   = sanitize_textarea_field( $_POST['cpc_qualifications'] );
 
-        $user_id  = $this->user_creator->create_user( $name, $email, $bio );
-        if ( is_wp_error( $user_id ) ) {
-            $error_code = $user_id->get_error_code();
-            $error_message = $user_id->get_error_message( $error_code );
-            error_log( 'User creation failed: ' . $error_message );
-            error_log('submission_data'. print_r($submitted_data, true));
-            // Handle specific error codes
-            $this->errors = array(); 
+		if ( ! is_user_logged_in() ) {
+			$user_id  = $this->user_creator->create_user( $name, $email, $bio );
+			if ( is_wp_error( $user_id ) ) {
+				$error_code = $user_id->get_error_code();
+				$error_message = $user_id->get_error_message( $error_code );
+				error_log( 'User creation failed: ' . $error_message );
+				error_log('submission_data'. print_r($submitted_data, true));
+				// Handle specific error codes
+				$this->errors = array(); 
 
-            switch ( $error_code ) {
-                case 'existing_user_email':
-                    $errors['cpc_email'] = __( 'This email is already registered.', 'profile-creator ');
-                    break;
-                case 'existing_user_login':
-                    $errors['user_creation'] = __( 'A user with a similar name already exists.', 'profile-creator' );
-                    break;
-                case 'empty_user_login':
-                case 'invalid_username':
-                    $errors['cpc_name'] = __( 'Invalid name provided.', 'profile-creator' );
-                    break;
-                default:
-                    $errors['user_creation'] = $error_message; // Fallback for unexpected errors
-                    break;
-            }
-            
-            $this->errors = $errors;
-            $this->submitted_data = $submitted_data;
-            
-            echo $this->render_form( $errors, $submitted_data );
-            return;
-        }
+				switch ( $error_code ) {
+					case 'existing_user_email':
+						$errors['cpc_email'] = __( 'This email is already registered.', 'profile-creator ');
+						break;
+					case 'existing_user_login':
+						$errors['user_creation'] = __( 'A user with a similar name already exists.', 'profile-creator' );
+						break;
+					case 'empty_user_login':
+					case 'invalid_username':
+						$errors['cpc_name'] = __( 'Invalid name provided.', 'profile-creator' );
+						break;
+					default:
+						$errors['user_creation'] = $error_message; // Fallback for unexpected errors
+						break;
+				}
+				
+				$this->errors = $errors;
+				$this->submitted_data = $submitted_data;
+				
+				echo $this->render_form( $errors, $submitted_data );
+				return;
+			}
+			wp_set_current_user( $user_id );
+			wp_set_auth_cookie( $user_id );
+		} else {
+			$user_id  = get_current_user_id();
+		}
 
         $this->errors = array(); 
 
@@ -355,8 +369,21 @@ class ConsultantFormHandler extends FormHandler {
         update_post_meta( $post_id, 'consult_cv', $cv_url );
         $this->save_meta_data( $user_id, $post_id );
 
-        wp_set_current_user( $user_id );
-        wp_set_auth_cookie( $user_id );
+		$create_consultant_email = get_option('createConsultEmail');
+		$current_user = wp_get_current_user();
+
+		$headers  = 'MIME-Version: 1.0' . "\r\n";
+		$headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
+		$headers .=	'From: DARPE <info@darpe.me>' . "\r\n";
+		$message = "New Individual Consultant entry submitted: (" . $name . ")<br>". 'Have a good day!';
+        wp_mail( $create_consultant_email, 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
+        // wp_mail( 'info@darpe.me', 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
+		if ( ! ( empty( $current_user->user_email ) ) ) {
+            add_post_meta( $post_id, 'author_email', $current_user->user_email );
+        }
+		add_post_meta( $post_id, 'author_name', $current_user->display_name );
+		add_user_meta( $user_id, 'consultant_submitted_posts', $post_id );
+
         wp_safe_redirect( get_permalink( $post_id ) );
         exit;
     }
@@ -455,7 +482,7 @@ class ConsultantFormHandler extends FormHandler {
 			'cpc_citizenship'    => 'consultant-citizenship',
 			'cpc_gender'         => 'consultant-gender',
 			'cpc_qualifications' => 'overview',
-			'cpc_clients'        => 'consultant-partners',
+			'cpc_clients'        => 'partners',
 			'cpc_education'      => 'education',
 			'cpc_services'       => 'consultant-services',
 			'cpc_subservices'    => 'consultant-sub-service',

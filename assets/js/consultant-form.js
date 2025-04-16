@@ -15,6 +15,11 @@ jQuery(document).ready(function($) {
             const name = $(this).attr('name').replace('[0]', `[${educationCount}]`);
             $(this).attr('name', name);
         });
+        template.find('select').val('');
+        template.find('select[name]').each(function() {
+            const name = $(this).attr('name').replace('[0]', `[${educationCount}]`);
+            $(this).attr('name', name);
+        });
         $('.cpc-education-repeater').append(template);
         educationCount++;
     });
