@@ -45,9 +45,15 @@
     text-decoration: none;
     color: #0d6efd;
     padding: 0;
-    line-height: 1;
+    line-height: 0.2;
     width: 15px;
+    height: 15px;
     text-align: center;
+}
+
+.cpc-services .toggle-icon:hover,
+.cpc-sectors .toggle-icon:hover {
+    color:#0d6efd;
 }
 
 .cpc-services .toggle-icon,
@@ -55,6 +61,7 @@
     display: block;
     font-weight: bold;
     font-size: 1.2em;
+    color: #fff;
 }
 
 .cpc-services .placeholder-icon,
