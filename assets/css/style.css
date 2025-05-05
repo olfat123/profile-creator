@@ -58,10 +58,8 @@
 
 .cpc-services .toggle-icon,
 .cpc-sectors .toggle-icon {
-    display: block;
     font-weight: bold;
     font-size: 1.2em;
-    color: #fff;
 }
 
 .cpc-services .placeholder-icon,

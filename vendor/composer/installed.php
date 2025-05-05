@@ -3,11 +3,11 @@
         'name' => 'olfat/profile-creator',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '331be7938c83e9bc6c451af5f5734383d4719aca',
+        'reference' => '84d4f2cae3aa1870c0a5c490dcdac06aecd3761d',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => true,
+        'dev' => false,
     ),
     'versions' => array(
         'composer/installers' => array(
@@ -22,7 +22,7 @@
         'olfat/profile-creator' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '331be7938c83e9bc6c451af5f5734383d4719aca',
+            'reference' => '84d4f2cae3aa1870c0a5c490dcdac06aecd3761d',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

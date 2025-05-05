@@ -42,7 +42,6 @@ class ProfileCreator {
 		$this->form_handlers     = array(
 			'consultant' => new ConsultantFormHandler(),
 			'dip'        => new DipFormHandler(),
-			'dap'        => new DapFormHandler(),
 		);
 	}
 
@@ -52,6 +51,7 @@ class ProfileCreator {
 	public function init() {
 		$this->register_post_types();
 		$this->setup_hooks();
+		$this->define_constants();
 	}
 
 	/**
@@ -91,10 +91,10 @@ class ProfileCreator {
 	 */
 	public function enqueue_assets() {
 		wp_enqueue_style(
-			'cpc-styles',
-			plugin_dir_url( __DIR__ ) . 'assets/css/style.css',
+			'pcp-styles',
+			PROFILE_CREATOR_PLUGIN_DIR_URL . '/assets/css/style.css',
 			array(),
-			'1.0'
+			PROFILE_CREATOR_PLUGIN_VERSION
 		);
 	}
 

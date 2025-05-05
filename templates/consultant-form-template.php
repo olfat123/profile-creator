@@ -11,13 +11,31 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
+
+if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_post ) {
+	$submitted_data[ 'cpc_name' ]           = get_post_title( $consultant_submitted_post );
+	$submitted_data[ 'cpc_email' ]          = get_post_meta( $consultant_submitted_post, 'cpc_email', true );
+	$submitted_data[ 'cpc_telephone' ]      = get_post_meta( $consultant_submitted_post, 'cpc_telephone', true );
+	$submitted_data[ 'cpc_mobile' ]         = get_post_meta( $consultant_submitted_post, 'cpc_mobile', true );
+	$submitted_data[ 'cpc_linkedin' ]       = get_post_meta( $consultant_submitted_post, 'cpc_linkedin', true );
+	$submitted_data[ 'cpc_experience' ]     = get_post_meta( $consultant_submitted_post, 'cpc_experience', true );
+	$submitted_data[ 'cpc_languages' ]      = get_post_meta( $consultant_submitted_post, 'cpc_languages', true );
+	$submitted_data[ 'cpc_citizenship' ]    = get_post_meta( $consultant_submitted_post, 'cpc_citizenship', true );
+	$submitted_data[ 'cpc_country_of_exp' ] = get_post_meta( $consultant_submitted_post, 'cpc_country_of_exp', true );
+	$submitted_data[ 'cpc_gender' ]         = get_post_meta( $consultant_submitted_post, 'cpc_gender', true );
+	$submitted_data[ 'cpc_qualifications' ] = get_post_meta( $consultant_submitted_post, 'cpc_qualifications', true );
+	$submitted_data[ 'cpc_clients' ]        = get_post_meta( $consultant_submitted_post, 'cpc_clients', true );
+	$submitted_data[ 'cpc_education' ]      = get_post_meta( $consultant_submitted_post, 'cpc_education', true );
+
+}
+
 ?>
 
 <?php if ( ! empty( $errors ) ) : ?>
     <div class="alert alert-danger"><?php echo esc_html( print_r( $errors, true ) ); ?></div>
 <?php endif; ?>
 <form method="post" class="cpc-profile-form container" enctype="multipart/form-data">
-	<?php wp_nonce_field( "cpc_create_consultant_profile", 'cpc_nonce' ); ?>
+	<?php wp_nonce_field( 'cpc_create_consultant_profile', 'cpc_nonce' ); ?>
 	
 	<div class="row mb-3">
 		<div class="col-md-6">

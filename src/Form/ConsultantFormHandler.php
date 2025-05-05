@@ -37,6 +37,13 @@ class ConsultantFormHandler extends FormHandler {
 	private $submitted_data = array();
 
 	/**
+	 * Submitted post ID.
+	 *
+	 * @var int|null
+	 */
+	private $consultant_submitted_post = null;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -61,7 +68,7 @@ class ConsultantFormHandler extends FormHandler {
 		wp_enqueue_style( 'cpc-custom', PROFILE_CREATOR_PLUGIN_DIR_URL . '/assets/css/style.css' );
 	}
 
-    /**
+	/**
 	 * Get the form type.
 	 *
 	 * @return string The type of the form.
@@ -69,32 +76,35 @@ class ConsultantFormHandler extends FormHandler {
 	public function get_type() {
 		return $this->type;
 	}
-    
+
 	/**
 	 * Render the consultant form.
 	 *
 	 * @param array $errors         Validation errors to display.
 	 * @param array $submitted_data Submitted form data to repopulate fields.
+	 * 
 	 * @return string HTML form markup.
 	 */
 	public function render_form( array $errors = array(), array $submitted_data = array() ): string {
 
-        $errors_to_use         = ! empty( $this->errors ) ? $this->errors : $errors;
+		$errors_to_use         = ! empty( $this->errors ) ? $this->errors : $errors;
 		$submitted_data_to_use = ! empty( $this->submitted_data ) ? $this->submitted_data : $submitted_data;
 
 		$this->errors         = $errors_to_use;
 		$this->submitted_data = $submitted_data_to_use;
-		
-		if ( is_user_logged_in() ) {
-			$current_user = wp_get_current_user();
-			$consultant_submitted_posts = get_user_meta( $current_user->ID, 'consultant_submitted_posts' );
-			if ( is_array( $consultant_submitted_posts ) )
-				$consultant_submitted_posts = end( $consultant_submitted_posts );
-			if ( $consultant_submitted_posts && ! is_null( get_post( $consultant_submitted_posts ) ) )
-				return '<div class="membership-success-message text-center mt-4" style="margin: auto;"><h2>' . esc_html__( 'You have already created a profile.', 'profile-creator' ).'</h2>
-                <p style="font-size:15px">Do you want to <a style="color:#61c2e2;" href="'.get_permalink(21999).'">update your profile?</a></p>
-                <br> </div>';
 
+		if ( is_user_logged_in() ) {
+			$current_user               = wp_get_current_user();
+			$consultant_submitted_posts = get_user_meta( $current_user->ID, 'consultant_submitted_posts' );
+			if ( is_array( $consultant_submitted_posts ) ) {
+				$consultant_submitted_post = end( $consultant_submitted_posts );
+			}
+			if ( $consultant_submitted_post && ! is_null( get_post( $consultant_submitted_post ) ) ) {
+				// return '<div class="membership-success-message text-center mt-4" style="margin: auto;"><h2>' . esc_html__( 'You have already created a profile.', 'profile-creator' ).'</h2>
+				// <p style="font-size:15px">Do you want to <a style="color:#61c2e2;" href="'.get_permalink(21999).'">update your profile?</a></p>
+				// <br> </div>';
+				$this->consultant_submitted_post = $consultant_submitted_post;
+			}
 		}
 
 		// Start output buffering and include the template.
@@ -108,8 +118,8 @@ class ConsultantFormHandler extends FormHandler {
 	 */
 	private function render_service_checkboxes() {
 		$services             = $this->get_hierarchical_services();
-		$selected_services    = ( array ) ( $this->submitted_data['cpc_services'] ?? array() );
-		$selected_subservices = ( array ) ( $this->submitted_data['cpc_subservices'] ?? array() );
+		$selected_services    = (array) ( $this->submitted_data['cpc_services'] ?? array() );
+		$selected_subservices = (array) ( $this->submitted_data['cpc_subservices'] ?? array() );
 
 		foreach ( $services as $service ) {
 			$collapse_id = "service-collapse-{$service['id']}";
@@ -163,8 +173,8 @@ class ConsultantFormHandler extends FormHandler {
 	 */
 	private function render_sector_checkboxes() {
 		$sectors             = $this->get_hierarchical_sectors();
-		$selected_sectors    = ( array ) ( $this->submitted_data['cpc_sectors'] ?? array() );
-		$selected_subsectors = ( array ) ( $this->submitted_data['cpc_subsectors'] ?? array() );
+		$selected_sectors    = (array) ( $this->submitted_data['cpc_sectors'] ?? array() );
+		$selected_subsectors = (array) ( $this->submitted_data['cpc_subsectors'] ?? array() );
 
 		foreach ( $sectors as $sector ) {
 			$collapse_id = "sector-collapse-{$sector['ID']}";
@@ -231,7 +241,7 @@ class ConsultantFormHandler extends FormHandler {
 		$lookup   = array();
 
 		foreach ( $results as $service ) {
-			$service['children'] = array();
+			$service['children']      = array();
 			$lookup[ $service['id'] ] = $service;
 		}
 
@@ -273,51 +283,51 @@ class ConsultantFormHandler extends FormHandler {
 		return $result;
 	}
 
-    /**
-     * Process the submitted form data.
-     */
-    public function process_form(): void {
-        if ( ! isset( $_POST['cpc_submit'] ) ) {
-            return;
-        }
-        
-        if ( ! wp_verify_nonce( $_POST['cpc_nonce'], "cpc_create_{$this->type}_profile" ) ) {
-            return;
-        }
-        $this->errors = array(); 
+	/**
+	 * Process the submitted form data.
+	 */
+	public function process_form(): void {
+		if ( ! isset( $_POST['cpc_submit'] ) ) {
+			return;
+		}
 
-        $errors         = $this->validate_form();
-        $submitted_data = $_POST;
+		if ( ! wp_verify_nonce( $_POST['cpc_nonce'], "cpc_create_{$this->type}_profile" ) ) {
+			return;
+		}
+		$this->errors = array();
 
-        if ( ! empty( $errors ) ) {
-            $this->errors         = $errors;
+		$errors         = $this->validate_form();
+		$submitted_data = $_POST;
+
+		if ( ! empty( $errors ) ) {
+			$this->errors         = $errors;
 			$this->submitted_data = $submitted_data;
-            error_log( 'Validation errors found: ' . print_r( $errors, true ) );
-            // Re-render the form with errors and submitted data.
-            if ( ! headers_sent() ) {
-                ob_start();
-            }
-            echo $this->render_form( $errors, $submitted_data ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            return;
-        }
+			error_log( 'Validation errors found: ' . print_r( $errors, true ) );
+			// Re-render the form with errors and submitted data.
+			if ( ! headers_sent() ) {
+				ob_start();
+			}
+			echo $this->render_form( $errors, $submitted_data ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			return;
+		}
 
-        $name  = sanitize_text_field( $_POST['cpc_name'] );
-        $email = sanitize_email( $_POST['cpc_email'] );
-        $bio   = sanitize_textarea_field( $_POST['cpc_qualifications'] );
+		$name  = sanitize_text_field( $_POST['cpc_name'] );
+		$email = sanitize_email( $_POST['cpc_email'] );
+		$bio   = sanitize_textarea_field( $_POST['cpc_qualifications'] );
 
 		if ( ! is_user_logged_in() ) {
-			$user_id  = $this->user_creator->create_user( $name, $email, $bio );
+			$user_id = $this->user_creator->create_user( $name, $email, $bio );
 			if ( is_wp_error( $user_id ) ) {
-				$error_code = $user_id->get_error_code();
+				$error_code    = $user_id->get_error_code();
 				$error_message = $user_id->get_error_message( $error_code );
 				error_log( 'User creation failed: ' . $error_message );
-				error_log('submission_data'. print_r($submitted_data, true));
+				error_log( 'submission_data' . print_r( $submitted_data, true ) );
 				// Handle specific error codes
-				$this->errors = array(); 
+				$this->errors = array();
 
 				switch ( $error_code ) {
 					case 'existing_user_email':
-						$errors['cpc_email'] = __( 'This email is already registered.', 'profile-creator ');
+						$errors['cpc_email'] = __( 'This email is already registered.', 'profile-creator ' );
 						break;
 					case 'existing_user_login':
 						$errors['user_creation'] = __( 'A user with a similar name already exists.', 'profile-creator' );
@@ -330,63 +340,63 @@ class ConsultantFormHandler extends FormHandler {
 						$errors['user_creation'] = $error_message; // Fallback for unexpected errors
 						break;
 				}
-				
-				$this->errors = $errors;
+
+				$this->errors         = $errors;
 				$this->submitted_data = $submitted_data;
-				
+
 				echo $this->render_form( $errors, $submitted_data );
 				return;
 			}
 			wp_set_current_user( $user_id );
 			wp_set_auth_cookie( $user_id );
 		} else {
-			$user_id  = get_current_user_id();
+			$user_id = get_current_user_id();
 		}
 
-        $this->errors = array(); 
+		$this->errors = array();
 
-        $photo_id  = $this->handle_file_upload( 'cpc_photo', $user_id );
-        $photo_url = wp_get_attachment_url( $photo_id );
+		$photo_id  = $this->handle_file_upload( 'cpc_photo', $user_id );
+		$photo_url = wp_get_attachment_url( $photo_id );
 
-        $cv_id  = $this->handle_file_upload( 'cpc_cv', $user_id );
-        $cv_url = wp_get_attachment_url( $cv_id );
+		$cv_id  = $this->handle_file_upload( 'cpc_cv', $user_id );
+		$cv_url = wp_get_attachment_url( $cv_id );
 
-        $post_id = wp_insert_post(
-            array(
-                'post_title'   => $name,
-                'post_content' => wp_kses_post( $_POST['cpc_qualifications'] ),
-                'post_status'  => 'publish',
-                'post_type'    => "{$this->type}-entries",
-                'post_author'  => $user_id,
-            )
-        );
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => $name,
+				'post_content' => wp_kses_post( $_POST['cpc_qualifications'] ),
+				'post_status'  => 'publish',
+				'post_type'    => "{$this->type}-entries",
+				'post_author'  => $user_id,
+			)
+		);
 
-        if ( $photo_id ) {
-            set_post_thumbnail( $post_id, $photo_id );
-        }
+		if ( $photo_id ) {
+			set_post_thumbnail( $post_id, $photo_id );
+		}
 
-        update_post_meta( $post_id, 'consult_photo', $photo_url );
-        update_post_meta( $post_id, 'consult_cv', $cv_url );
-        $this->save_meta_data( $user_id, $post_id );
+		update_post_meta( $post_id, 'consult_photo', $photo_url );
+		update_post_meta( $post_id, 'consult_cv', $cv_url );
+		$this->save_meta_data( $user_id, $post_id );
 
-		$create_consultant_email = get_option('createConsultEmail');
-		$current_user = wp_get_current_user();
+		$create_consultant_email = get_option( 'createConsultEmail' );
+		$current_user            = wp_get_current_user();
 
 		$headers  = 'MIME-Version: 1.0' . "\r\n";
 		$headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
-		$headers .=	'From: DARPE <info@darpe.me>' . "\r\n";
-		$message = "New Individual Consultant entry submitted: (" . $name . ")<br>". 'Have a good day!';
-        wp_mail( $create_consultant_email, 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
-        // wp_mail( 'info@darpe.me', 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
+		$headers .= 'From: DARPE <info@darpe.me>' . "\r\n";
+		$message  = 'New Individual Consultant entry submitted: (' . $name . ')<br>' . 'Have a good day!';
+		wp_mail( $create_consultant_email, 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
+		// wp_mail( 'info@darpe.me', 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
 		if ( ! ( empty( $current_user->user_email ) ) ) {
-            add_post_meta( $post_id, 'author_email', $current_user->user_email );
-        }
+			add_post_meta( $post_id, 'author_email', $current_user->user_email );
+		}
 		add_post_meta( $post_id, 'author_name', $current_user->display_name );
 		add_user_meta( $user_id, 'consultant_submitted_posts', $post_id );
 
-        wp_safe_redirect( get_permalink( $post_id ) );
-        exit;
-    }
+		wp_safe_redirect( get_permalink( $post_id ) );
+		exit;
+	}
 
 	/**
 	 * Validate form data.
@@ -500,7 +510,6 @@ class ConsultantFormHandler extends FormHandler {
 				update_post_meta( $post_id, $meta_key, $value );
 			}
 		}
-
 	}
 
 	/**
@@ -553,7 +562,7 @@ class ConsultantFormHandler extends FormHandler {
 	 * @return array Array of country names.
 	 */
 	private function get_countries(): array {
-		$countries         = get_option( 'control_panel_countries' );
+		$countries          = get_option( 'control_panel_countries' );
 		$exploded_countries = array_unique( explode( ', ', $countries ) );
 		sort( $exploded_countries );
 		return $exploded_countries;

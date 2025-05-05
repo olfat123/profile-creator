@@ -1,0 +1,37 @@
+{
+	"name": "profile-creator",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"devDependencies": {
+		"babel-minify": "^0.5.2",
+		"sass": "^1.87.0"
+	},
+	"scripts": {
+		"prebuild": "rm -rf ./vendor",
+		"build": "composer install -o --no-dev && pnpm run sass && pnpm run minify && pnpm run archive",
+		"build:dev": "composer install -o && pnpm run sass && pnpm run minify ",
+		"archive": "composer archive --file=$npm_package_name --format=zip",
+		"postarchive": "rm -rf $npm_package_name && unzip $npm_package_name.zip -d $npm_package_name && rm $npm_package_name.zip && zip -r $npm_package_name.zip $npm_package_name && rm -rf $npm_package_name",
+		"bump": "node version-bump.js",
+		"bump:major": "node version-bump.js major",
+		"wpcs": "composer wpcs",
+		"wpcs:fix": "composer wpcs:fix",
+		"preminify": "rm -f assets/js/*.min.js",
+		"minify": "for f in assets/js/*.js; do file=${f%.js}; node_modules/.bin/minify $f --out-file $file.min.js; done",
+		"presass": "rm -f assets/css/*.css",
+		"sass": "node_modules/.bin/sass assets/css --no-source-map --style=compressed",
+		"sass:watch": "pnpm sass --watch"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/olfat123/profile-creator.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/olfat123/profile-creator/issues"
+	},
+	"homepage": "https://github.com/olfat123/profile-creator#readme"
+}

@@ -34,36 +34,73 @@ jQuery(document).ready(function($) {
     $('.service-checkbox').on('change', function() {
         const $this = $(this);
         const parentId = $this.data('parent');
+        const serviceId = $this.val();
 
-        if ($this.is(':checked') && parentId != 0) {
-            $(`#service-${parentId}`).prop('checked', true);
-        }
+        if ($this.is(':checked')) {
+            // If it's a child and checked, ensure the parent is checked
+            if (parentId != 0) {
+                $(`#service-${parentId}`).prop('checked', true);
+            }
+        } else {
+            if (parentId == 0) {
+                // If it's a parent and unchecked, uncheck all children
+                $(`.service-checkbox[data-parent="${serviceId}"]`).prop('checked', false);
+            } else {
+                // If it's a child and unchecked, check if any siblings are still checked
+                const $siblings = $(`.service-checkbox[data-parent="${parentId}"]`);
+                const anyChecked = $siblings.is(':checked');
 
-        if (!$this.is(':checked') && parentId == 0) {
-            $this.closest('.form-check').find('.service-checkbox').prop('checked', false);
+                if (!anyChecked) {
+                    $(`#service-${parentId}`).prop('checked', false);
+                }
+            }
         }
     });
+
 
     // Sector checkbox logic
     $('.sector-checkbox').on('change', function() {
         const $this = $(this);
         const parentId = $this.data('parent');
-        
-        if ($this.is(':checked') && parentId != 0) {
-            $(`#sector-${parentId}`).prop('checked', true);
-        }
-        
-        if (!$this.is(':checked') && parentId == 0) {
-            $this.closest('.form-check').find('.sector-checkbox').prop('checked', false);
+        const sectorId = $this.val();
+
+        if ($this.is(':checked')) {
+            // If a child is checked, ensure parent is checked
+            if (parentId != 0) {
+                $(`#sector-${parentId}`).prop('checked', true);
+            }
+        } else {
+            if (parentId == 0) {
+                // If a parent is unchecked, uncheck all its children
+                $(`.sector-checkbox[data-parent="${sectorId}"]`).prop('checked', false);
+            } else {
+                // If a child is unchecked, check if all siblings are unchecked
+                const $siblings = $(`.sector-checkbox[data-parent="${parentId}"]`);
+                const anyChecked = $siblings.is(':checked');
+
+                if (!anyChecked) {
+                    $(`#sector-${parentId}`).prop('checked', false);
+                }
+            }
         }
     });
 
     // Toggle icon for collapse
-    $('.cpc-services .collapse').on('show.bs.collapse', function() {
-        $(this).prev().find('.toggle-icon').text('-');
-    }).on('hide.bs.collapse', function() {
-        $(this).prev().find('.toggle-icon').text('+');
-    });
+        $('.collapse').on('show.bs.collapse', function () {
+          var target = $('[data-bs-target="#' + this.id + '"] .toggle-icon');
+          target.fadeOut(150, function() {
+            $(this).text('-').fadeIn(150);
+          });
+        });
+      
+        $('.collapse').on('hide.bs.collapse', function () {
+          var target = $('[data-bs-target="#' + this.id + '"] .toggle-icon');
+          target.fadeOut(150, function() {
+            $(this).text('+').fadeIn(150);
+          });
+        });
+      
+      
 
     // Fix Select2 with Bootstrap
     $(document).on('select2:open', () => {

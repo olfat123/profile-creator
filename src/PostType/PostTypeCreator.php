@@ -5,7 +5,6 @@ class PostTypeCreator implements PostTypeCreatorInterface {
     private $post_types = array(
         'consultant-entries' => 'Consultant Entries',
         'dip-entries'        => 'Dip Entries',
-        'dap-entries'        => 'Dap Entries'
     );
 
     public function register_post_types(): void {
