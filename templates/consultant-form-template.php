@@ -13,19 +13,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_post ) {
-	$submitted_data[ 'cpc_name' ]           = get_post_title( $consultant_submitted_post );
-	$submitted_data[ 'cpc_email' ]          = get_post_meta( $consultant_submitted_post, 'cpc_email', true );
-	$submitted_data[ 'cpc_telephone' ]      = get_post_meta( $consultant_submitted_post, 'cpc_telephone', true );
-	$submitted_data[ 'cpc_mobile' ]         = get_post_meta( $consultant_submitted_post, 'cpc_mobile', true );
-	$submitted_data[ 'cpc_linkedin' ]       = get_post_meta( $consultant_submitted_post, 'cpc_linkedin', true );
-	$submitted_data[ 'cpc_experience' ]     = get_post_meta( $consultant_submitted_post, 'cpc_experience', true );
-	$submitted_data[ 'cpc_languages' ]      = get_post_meta( $consultant_submitted_post, 'cpc_languages', true );
-	$submitted_data[ 'cpc_citizenship' ]    = get_post_meta( $consultant_submitted_post, 'cpc_citizenship', true );
-	$submitted_data[ 'cpc_country_of_exp' ] = get_post_meta( $consultant_submitted_post, 'cpc_country_of_exp', true );
-	$submitted_data[ 'cpc_gender' ]         = get_post_meta( $consultant_submitted_post, 'cpc_gender', true );
-	$submitted_data[ 'cpc_qualifications' ] = get_post_meta( $consultant_submitted_post, 'cpc_qualifications', true );
-	$submitted_data[ 'cpc_clients' ]        = get_post_meta( $consultant_submitted_post, 'cpc_clients', true );
-	$submitted_data[ 'cpc_education' ]      = get_post_meta( $consultant_submitted_post, 'cpc_education', true );
+	$submitted_data[ 'cpc_name' ]           = get_the_title( $consultant_submitted_post );
+	$submitted_data[ 'cpc_email' ]          = get_post_meta( $consultant_submitted_post, 'consultant-email', true );
+	$submitted_data[ 'cpc_telephone' ]      = get_post_meta( $consultant_submitted_post, 'consultant-telephone', true );
+	$submitted_data[ 'cpc_mobile' ]         = get_post_meta( $consultant_submitted_post, 'consultant-mobile', true );
+	$submitted_data[ 'cpc_linkedin' ]       = get_post_meta( $consultant_submitted_post, 'consultant-linkedin', true );
+	$submitted_data[ 'cpc_experience' ]     = get_post_meta( $consultant_submitted_post, 'consultant-experience', true );
+	$submitted_data[ 'cpc_languages' ]      = get_post_meta( $consultant_submitted_post, 'consultant-langs', true );
+	$submitted_data[ 'cpc_citizenship' ]    = get_post_meta( $consultant_submitted_post, 'consultant-citizenship', true );
+	$submitted_data[ 'cpc_country_of_exp' ] = get_post_meta( $consultant_submitted_post, 'consultant-working-country', true );
+	$submitted_data[ 'cpc_gender' ]         = get_post_meta( $consultant_submitted_post, 'consultant-gender', true );
+	$submitted_data[ 'cpc_qualifications' ] = get_post_meta( $consultant_submitted_post, 'overview', true );
+	$submitted_data[ 'cpc_clients' ]        = get_post_meta( $consultant_submitted_post, 'partners', true );
+	$submitted_data[ 'cpc_education' ]      = get_post_meta( $consultant_submitted_post, 'education', true );
+	$submitted_data[ 'cpc_services' ]       = get_post_meta( $consultant_submitted_post, 'consultant-services', true );
+	$submitted_data[ 'cpc_subservices' ]    = get_post_meta( $consultant_submitted_post, 'consultant-sub-service', true );
+	$submitted_data[ 'cpc_sectors' ]        = get_post_meta( $consultant_submitted_post, 'consultant-sectors', true );
+	$submitted_data[ 'cpc_subsectors' ]     = get_post_meta( $consultant_submitted_post, 'consultant-sub-sectors', true );
 
 }
 
@@ -223,7 +227,7 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 							<?php
 							for ( $i = date( "Y" ) - 70; $i <= date( "Y" ) + 7; $i++ ) {
 								?>
-								<option value="<?php echo $i ;?>" <?php isset( $entry['start_date'] ) && $i == $entry['start_date'] ? 'selected' : ''; ?> ><?php echo $i ;?></option>
+								<option value="<?php echo $i ;?>" <?php echo isset( $entry['start_date'] ) && $i == $entry['start_date'] ? 'selected' : ''; ?> ><?php echo $i ;?></option>
 								<?php
 							}
 							?>
@@ -236,7 +240,7 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 							<?php
 							for ( $i = date( "Y" ) - 70; $i <= date( "Y" ) + 7; $i++ ) {
 								?>
-								<option value="<?php echo $i ;?>" <?php isset( $entry['end_date'] ) && $i == $entry['end_date'] ? 'selected' : ''; ?> ><?php echo $i ;?></option>
+								<option value="<?php echo $i ;?>" <?php echo isset( $entry['end_date'] ) && $i == $entry['end_date'] ? 'selected' : ''; ?> ><?php echo $i ;?></option>
 								<?php
 							}
 							?>
@@ -247,14 +251,14 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 			</div>
 		<?php endforeach; ?>
 	</div>
-	<button type="button" class="btn btn-secondary add-education mb-3"><?php esc_html_e( 'Add Education', 'profile-creator' ); ?></button>
+	<button type="button" class="btn-secondary add-education mb-3"><?php esc_html_e( 'Add Education', 'profile-creator' ); ?></button>
 
 	<div class="row mb-3">
 		<div class="col-md-6">
 			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Services', 'profile-creator' ); ?></h3>
 			<div class="mb-3 cpc-services card p-3 <?php echo isset( $errors['cpc_services'] ) ? 'is-invalid' : ''; ?>">
 				<div class="cpc-parent-list">
-					<?php $this->render_service_checkboxes(); ?>
+					<?php $this->render_service_checkboxes( $submitted_data[ 'cpc_services' ], $submitted_data[ 'cpc_subservices' ] ); ?>
 				</div>
 				<?php if ( isset( $errors['cpc_services'] ) ) : ?>
 					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['cpc_services'] ); ?></div>
@@ -265,7 +269,7 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Sectors', 'profile-creator' ); ?></h3>
 			<div class="mb-3 cpc-sectors card p-3 <?php echo isset( $errors['cpc_sectors'] ) ? 'is-invalid' : ''; ?>">
 				<div class="cpc-parent-list">
-					<?php $this->render_sector_checkboxes(); ?>
+					<?php $this->render_sector_checkboxes( $submitted_data[ 'cpc_sectors' ], $submitted_data[ 'cpc_subsectors' ] ); ?>
 				</div>
 				<?php if ( isset( $errors['cpc_sectors'] ) ) : ?>
 					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['cpc_sectors'] ); ?></div>

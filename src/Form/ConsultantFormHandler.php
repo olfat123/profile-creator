@@ -116,17 +116,17 @@ class ConsultantFormHandler extends FormHandler {
 	/**
 	 * Render service checkboxes with hierarchical structure.
 	 */
-	private function render_service_checkboxes() {
+	private function render_service_checkboxes( array $saved_services = array(), array $saved_subservices= array() ) {
 		$services             = $this->get_hierarchical_services();
-		$selected_services    = (array) ( $this->submitted_data['cpc_services'] ?? array() );
-		$selected_subservices = (array) ( $this->submitted_data['cpc_subservices'] ?? array() );
+		$selected_services    = (array) ( $this->submitted_data['cpc_services'] ?? $saved_services );
+		$selected_subservices = (array) ( $this->submitted_data['cpc_subservices'] ?? $saved_subservices );
 
 		foreach ( $services as $service ) {
 			$collapse_id = "service-collapse-{$service['id']}";
 			?>
 			<div class="form-check">
 				<?php if ( ! empty( $service['children'] ) ) : ?>
-					<button class="btn p-0 me-2 toggle-btn" 
+					<button class="p-0 me-2 toggle-btn" 
 							type="button" 
 							data-bs-toggle="collapse" 
 							data-bs-target="#<?php echo esc_attr( $collapse_id ); ?>" 
@@ -171,17 +171,17 @@ class ConsultantFormHandler extends FormHandler {
 	/**
 	 * Render sector checkboxes with hierarchical structure.
 	 */
-	private function render_sector_checkboxes() {
+	private function render_sector_checkboxes( array $saved_sectors = array(), array $saved_subsectors= array() ) {
 		$sectors             = $this->get_hierarchical_sectors();
-		$selected_sectors    = (array) ( $this->submitted_data['cpc_sectors'] ?? array() );
-		$selected_subsectors = (array) ( $this->submitted_data['cpc_subsectors'] ?? array() );
+		$selected_sectors    = (array) ( $this->submitted_data['cpc_sectors'] ?? $saved_sectors );
+		$selected_subsectors = (array) ( $this->submitted_data['cpc_subsectors'] ?? $saved_subsectors );
 
 		foreach ( $sectors as $sector ) {
 			$collapse_id = "sector-collapse-{$sector['ID']}";
 			?>
 			<div class="form-check">
 				<?php if ( ! empty( $sector['children'] ) ) : ?>
-					<button class="btn p-0 me-2 toggle-btn" 
+					<button class="p-0 me-2 toggle-btn" 
 							type="button" 
 							data-bs-toggle="collapse" 
 							data-bs-target="#<?php echo esc_attr( $collapse_id ); ?>" 
