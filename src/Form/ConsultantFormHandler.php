@@ -23,265 +23,22 @@ class ConsultantFormHandler extends FormHandler {
 	protected $type = 'consultant';
 
 	/**
-	 * Validation errors.
-	 *
-	 * @var array
-	 */
-	private $errors = array();
+     * Get the template path for the consultant form.
+     *
+     * @return string Path to the form template file.
+     */
+    protected function get_template_path(): string {
+        return PROFILE_CREATOR_PLUGIN_DIR_PATH . '/templates/consultant-form-template.php';
+    }
 
-	/**
-	 * Submitted form data.
-	 *
-	 * @var array
-	 */
-	private $submitted_data = array();
-
-	/**
-	 * Submitted post ID.
-	 *
-	 * @var int|null
-	 */
-	private $consultant_submitted_post = null;
-
-	/**
-	 * Constructor.
-	 */
-	public function __construct() {
-		parent::__construct();
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-	}
-
-	/**
-	 * Enqueue scripts and styles for the form.
-	 */
-	public function enqueue_scripts() {
-		wp_enqueue_media();
-		wp_enqueue_script( 'jquery' );
-		// Bootstrap CSS and JS.
-		wp_enqueue_style( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css', array(), '5.3.0' );
-		wp_enqueue_script( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js', array( 'jquery' ), '5.3.0', true );
-		// Select2.
-		wp_enqueue_script( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js', array( 'jquery' ), '4.0.13', true );
-		wp_enqueue_style( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css', array(), '4.0.13' );
-		// Custom script.
-		wp_enqueue_script( 'cpc-consultant-form', PROFILE_CREATOR_PLUGIN_DIR_URL . '/assets/js/consultant-form.js', array( 'jquery', 'bootstrap' ), '1.0', true );
-		wp_enqueue_style( 'cpc-custom', PROFILE_CREATOR_PLUGIN_DIR_URL . '/assets/css/style.css' );
-	}
-
-	/**
-	 * Get the form type.
-	 *
-	 * @return string The type of the form.
-	 */
-	public function get_type() {
-		return $this->type;
-	}
-
-	/**
-	 * Render the consultant form.
-	 *
-	 * @param array $errors         Validation errors to display.
-	 * @param array $submitted_data Submitted form data to repopulate fields.
-	 * 
-	 * @return string HTML form markup.
-	 */
-	public function render_form( array $errors = array(), array $submitted_data = array() ): string {
-
-		$errors_to_use         = ! empty( $this->errors ) ? $this->errors : $errors;
-		$submitted_data_to_use = ! empty( $this->submitted_data ) ? $this->submitted_data : $submitted_data;
-
-		$this->errors         = $errors_to_use;
-		$this->submitted_data = $submitted_data_to_use;
-
-		if ( is_user_logged_in() ) {
-			$current_user               = wp_get_current_user();
-			$consultant_submitted_posts = get_user_meta( $current_user->ID, 'consultant_submitted_posts' );
-			if ( is_array( $consultant_submitted_posts ) ) {
-				$consultant_submitted_post = end( $consultant_submitted_posts );
-			}
-			if ( $consultant_submitted_post && ! is_null( get_post( $consultant_submitted_post ) ) ) {
-				// return '<div class="membership-success-message text-center mt-4" style="margin: auto;"><h2>' . esc_html__( 'You have already created a profile.', 'profile-creator' ).'</h2>
-				// <p style="font-size:15px">Do you want to <a style="color:#61c2e2;" href="'.get_permalink(21999).'">update your profile?</a></p>
-				// <br> </div>';
-				$this->consultant_submitted_post = $consultant_submitted_post;
-			}
-		}
-
-		// Start output buffering and include the template.
-		ob_start();
-		include PROFILE_CREATOR_PLUGIN_DIR_PATH . '/templates/consultant-form-template.php';
-		return ob_get_clean();
-	}
-
-	/**
-	 * Render service checkboxes with hierarchical structure.
-	 */
-	private function render_service_checkboxes( array $saved_services = array(), array $saved_subservices= array() ) {
-		$services             = $this->get_hierarchical_services();
-		$selected_services    = (array) ( $this->submitted_data['cpc_services'] ?? $saved_services );
-		$selected_subservices = (array) ( $this->submitted_data['cpc_subservices'] ?? $saved_subservices );
-
-		foreach ( $services as $service ) {
-			$collapse_id = "service-collapse-{$service['id']}";
-			?>
-			<div class="form-check">
-				<?php if ( ! empty( $service['children'] ) ) : ?>
-					<button class="p-0 me-2 toggle-btn" 
-							type="button" 
-							data-bs-toggle="collapse" 
-							data-bs-target="#<?php echo esc_attr( $collapse_id ); ?>" 
-							aria-expanded="false" 
-							aria-controls="<?php echo esc_attr( $collapse_id ); ?>">
-						<span class="toggle-icon">+</span>
-					</button>
-				<?php endif; ?>
-				<input class="form-check-input service-checkbox" 
-					type="checkbox" 
-					name="cpc_services[]" 
-					value="<?php echo esc_attr( $service['id'] ); ?>"
-					id="service-<?php echo esc_attr( $service['id'] ); ?>"
-					data-parent="<?php echo esc_attr( $service['parent_id'] ); ?>"
-					<?php echo in_array( $service['id'], $selected_services ) ? 'checked' : ''; ?>>
-				<label class="form-check-label" for="service-<?php echo esc_attr( $service['id'] ); ?>">
-					<?php echo esc_html( $service['service'] ); ?>
-				</label>
-				<?php if ( ! empty( $service['children'] ) ) : ?>
-					<div class="collapse ms-4 w-100" id="<?php echo esc_attr( $collapse_id ); ?>">
-						<?php foreach ( $service['children'] as $child ) : ?>
-							<div class="form-check">
-								<input class="form-check-input service-checkbox" 
-									type="checkbox" 
-									name="cpc_subservices[]" 
-									value="<?php echo esc_attr( $child['id'] ); ?>"
-									id="service-<?php echo esc_attr( $child['id'] ); ?>"
-									data-parent="<?php echo esc_attr( $child['parent_id'] ); ?>"
-									<?php echo in_array( $child['id'], $selected_subservices ) ? 'checked' : ''; ?>>
-								<label class="form-check-label" for="service-<?php echo esc_attr( $child['id'] ); ?>">
-									<?php echo esc_html( $child['service'] ); ?>
-								</label>
-							</div>
-						<?php endforeach; ?>
-					</div>
-				<?php endif; ?>
-			</div>
-			<?php
-		}
-	}
-
-	/**
-	 * Render sector checkboxes with hierarchical structure.
-	 */
-	private function render_sector_checkboxes( array $saved_sectors = array(), array $saved_subsectors= array() ) {
-		$sectors             = $this->get_hierarchical_sectors();
-		$selected_sectors    = (array) ( $this->submitted_data['cpc_sectors'] ?? $saved_sectors );
-		$selected_subsectors = (array) ( $this->submitted_data['cpc_subsectors'] ?? $saved_subsectors );
-
-		foreach ( $sectors as $sector ) {
-			$collapse_id = "sector-collapse-{$sector['ID']}";
-			?>
-			<div class="form-check">
-				<?php if ( ! empty( $sector['children'] ) ) : ?>
-					<button class="p-0 me-2 toggle-btn" 
-							type="button" 
-							data-bs-toggle="collapse" 
-							data-bs-target="#<?php echo esc_attr( $collapse_id ); ?>" 
-							aria-expanded="false" 
-							aria-controls="<?php echo esc_attr( $collapse_id ); ?>">
-						<span class="toggle-icon">+</span>
-					</button>
-				<?php else : ?>
-					<span class="me-2 placeholder-icon"> </span>
-				<?php endif; ?>
-				<input class="form-check-input sector-checkbox me-2" 
-					type="checkbox" 
-					name="cpc_sectors[]" 
-					value="<?php echo esc_attr( $sector['ID'] ); ?>"
-					id="sector-<?php echo esc_attr( $sector['ID'] ); ?>"
-					data-parent="0"
-					<?php echo in_array( $sector['ID'], $selected_sectors ) ? 'checked' : ''; ?>>
-				<label class="form-check-label" for="sector-<?php echo esc_attr( $sector['ID'] ); ?>">
-					<?php echo esc_html( $sector['sector'] ); ?>
-				</label>
-				<?php if ( ! empty( $sector['children'] ) ) : ?>
-					<div class="collapse ms-4 w-100" id="<?php echo esc_attr( $collapse_id ); ?>">
-						<?php foreach ( $sector['children'] as $child ) : ?>
-							<div class="form-check d-flex align-items-center">
-								<span class="me-2 placeholder-icon"> </span>
-								<input class="form-check-input sector-checkbox me-2" 
-									type="checkbox" 
-									name="cpc_subsectors[]" 
-									value="<?php echo esc_attr( $child['ID'] ); ?>"
-									id="sector-<?php echo esc_attr( $child['ID'] ); ?>"
-									data-parent="<?php echo esc_attr( $child['sector_id'] ); ?>"
-									<?php echo in_array( $child['ID'], $selected_subsectors ) ? 'checked' : ''; ?>>
-								<label class="form-check-label" for="sector-<?php echo esc_attr( $child['ID'] ); ?>">
-									<?php echo esc_html( $child['subsector'] ); ?>
-								</label>
-							</div>
-						<?php endforeach; ?>
-					</div>
-				<?php endif; ?>
-			</div>
-			<?php
-		}
-	}
-
-	/**
-	 * Get hierarchical services from the database.
-	 *
-	 * @return array Hierarchical array of services.
-	 */
-	private function get_hierarchical_services(): array {
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'services';
-
-		$results = $wpdb->get_results( "SELECT id, service, parent_id FROM $table_name ORDER BY parent_id, service", ARRAY_A );
-
-		$services = array();
-		$lookup   = array();
-
-		foreach ( $results as $service ) {
-			$service['children']      = array();
-			$lookup[ $service['id'] ] = $service;
-		}
-
-		foreach ( $lookup as $id => $service ) {
-			if ( 0 == $service['parent_id'] ) {
-				$services[] = &$lookup[ $id ];
-			} elseif ( isset( $lookup[ $service['parent_id'] ] ) ) {
-				$lookup[ $service['parent_id'] ]['children'][] = &$lookup[ $id ];
-			}
-		}
-
-		return $services;
-	}
-
-	/**
-	 * Get hierarchical sectors from the database.
-	 *
-	 * @return array Hierarchical array of sectors and subsectors.
-	 */
-	private function get_hierarchical_sectors(): array {
-		global $wpdb;
-		$sector_table    = $wpdb->prefix . 'sector';
-		$subsector_table = $wpdb->prefix . 'subsector';
-
-		$sectors    = $wpdb->get_results( "SELECT ID, sector FROM $sector_table ORDER BY sector", ARRAY_A );
-		$subsectors = $wpdb->get_results( "SELECT ID, subsector, sector_id FROM $subsector_table ORDER BY subsector", ARRAY_A );
-
-		$lookup = array();
-		foreach ( $subsectors as $subsector ) {
-			$lookup[ $subsector['sector_id'] ][] = $subsector;
-		}
-
-		$result = array();
-		foreach ( $sectors as $sector ) {
-			$sector['children'] = $lookup[ $sector['ID'] ] ?? array();
-			$result[]           = $sector;
-		}
-
-		return $result;
-	}
+    /**
+     * Get the user meta key for submitted consultant posts.
+     *
+     * @return string Meta key for storing submitted post IDs.
+     */
+    protected function get_submitted_posts_meta_key(): string {
+        return 'consultant_submitted_posts';
+    }
 
 	/**
 	 * Process the submitted form data.
@@ -320,8 +77,6 @@ class ConsultantFormHandler extends FormHandler {
 			if ( is_wp_error( $user_id ) ) {
 				$error_code    = $user_id->get_error_code();
 				$error_message = $user_id->get_error_message( $error_code );
-				error_log( 'User creation failed: ' . $error_message );
-				error_log( 'submission_data' . print_r( $submitted_data, true ) );
 				// Handle specific error codes
 				$this->errors = array();
 
@@ -403,7 +158,7 @@ class ConsultantFormHandler extends FormHandler {
 	 *
 	 * @return array Associative array of validation errors.
 	 */
-	private function validate_form(): array {
+	protected function validate_form(): array {
 		$errors = array();
 
 		if ( empty( $_POST['cpc_name'] ) ) {
@@ -532,39 +287,4 @@ class ConsultantFormHandler extends FormHandler {
 		return $sanitized;
 	}
 
-	/**
-	 * Get list of languages.
-	 *
-	 * @return array Array of language names.
-	 */
-	private function get_languages(): array {
-		return array(
-			'English',
-			'Mandarin Chinese',
-			'Hindi',
-			'Spanish',
-			'French',
-			'Arabic',
-			'Bengali',
-			'Russian',
-			'Portuguese',
-			'Indonesian',
-			'Japanese',
-			'German',
-			'Turkish',
-			'Korean',
-		);
-	}
-
-	/**
-	 * Get list of countries.
-	 *
-	 * @return array Array of country names.
-	 */
-	private function get_countries(): array {
-		$countries          = get_option( 'control_panel_countries' );
-		$exploded_countries = array_unique( explode( ', ', $countries ) );
-		sort( $exploded_countries );
-		return $exploded_countries;
-	}
 }
