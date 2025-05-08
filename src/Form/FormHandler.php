@@ -376,4 +376,28 @@ abstract class FormHandler implements FormHandlerInterface {
 		sort( $exploded_countries );
 		return $exploded_countries;
 	}
+
+    /**
+	 * Get list of headquarters.
+	 *
+	 * @return array Array of country names.
+	 */
+	private function get_headquarters(): array {
+		$countries          = get_option( 'control_panel_citizenship' );
+		$exploded_countries = array_unique( explode( ', ', $countries ) );
+		sort( $exploded_countries );
+		return $exploded_countries;
+	}
+
+    /**
+	 * Get list of categories.
+	 *
+	 * @return array Array of category names.
+	 */
+	private function get_dip_categories(): array {
+		$countries          = get_option( 'control_panel_dip_categories' );
+		$exploded_countries = array_unique( explode( ', ', $countries ) );
+		sort( $exploded_countries );
+		return $exploded_countries;
+	}
 }
