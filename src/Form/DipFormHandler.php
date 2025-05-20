@@ -148,38 +148,33 @@ class DipFormHandler extends FormHandler {
 	protected function validate_form(): array {
 		$errors = array();
 
-		if ( empty( $_POST['cpc_name'] ) ) {
-			$errors['cpc_name'] = __( 'Name is required', 'profile-creator' );
+		if ( empty( $_POST['dpc_name'] ) ) {
+			$errors['dpc_name'] = __( 'Name is required', 'profile-creator' );
 		}
-		if ( empty( $_POST['cpc_email'] ) || ! is_email( $_POST['cpc_email'] ) ) {
-			$errors['cpc_email'] = __( 'Valid email is required', 'profile-creator' );
-		}
-		if ( empty( $_POST['cpc_experience'] ) || ! is_numeric( $_POST['cpc_experience'] ) || $_POST['cpc_experience'] < 0 ) {
-			$errors['cpc_experience'] = __( 'Valid years of experience is required', 'profile-creator' );
-		}
-		if ( empty( $_POST['cpc_languages'] ) ) {
-			$errors['cpc_languages'] = __( 'Languages are required', 'profile-creator' );
-		}
+		// if ( empty( $_POST['cpc_email'] ) || ! is_email( $_POST['cpc_email'] ) ) {
+		// 	$errors['cpc_email'] = __( 'Valid email is required', 'profile-creator' );
+		// }
+
 		if ( empty( $_POST['cpc_citizenship'] ) ) {
 			$errors['cpc_citizenship'] = __( 'Citizenship is required', 'profile-creator' );
 		}
-		if ( empty( $_POST['cpc_country_of_exp'] ) ) {
-			$errors['cpc_country_of_exp'] = __( 'Country of experience is required', 'profile-creator' );
+
+		if ( empty( $_FILES['dpc_photo']['name'] ) ) {
+			$errors['dpc_photo'] = __( 'Photo upload is required', 'profile-creator' );
 		}
-		if ( empty( $_POST['cpc_gender'] ) ) {
-			$errors['cpc_gender'] = __( 'Gender is required', 'profile-creator' );
+
+        if ( empty( $_FILES['dpc_cv']['name'] ) ) {
+			$errors['dpc_cv'] = __( 'Company profile upload is required', 'profile-creator' );
 		}
-		if ( empty( $_FILES['cpc_cv']['name'] ) ) {
-			$errors['cpc_cv'] = __( 'CV upload is required', 'profile-creator' );
+
+		if ( empty( $_POST['dpc_clients'] ) ) {
+			$errors['dpc_clients'] = __( 'Clients worked with is required', 'profile-creator' );
 		}
-		if ( empty( $_POST['cpc_clients'] ) ) {
-			$errors['cpc_clients'] = __( 'Clients worked with is required', 'profile-creator' );
+		if ( empty( $_POST['dpc_services'] ) ) {
+			$errors['dpc_services'] = __( 'At least one service must be selected', 'profile-creator' );
 		}
-		if ( empty( $_POST['cpc_services'] ) ) {
-			$errors['cpc_services'] = __( 'At least one service must be selected', 'profile-creator' );
-		}
-		if ( empty( $_POST['cpc_sectors'] ) ) {
-			$errors['cpc_sectors'] = __( 'At least one sector must be selected', 'profile-creator' );
+		if ( empty( $_POST['dpc_sectors'] ) ) {
+			$errors['dpc_sectors'] = __( 'At least one sector must be selected', 'profile-creator' );
 		}
 
 		return $errors;
@@ -225,27 +220,24 @@ class DipFormHandler extends FormHandler {
 	 */
 	private function save_meta_data( int $user_id, int $post_id ): void {
 		$fields = array(
-			'cpc_telephone'      => 'consultant-telephone',
-			'cpc_mobile'         => 'consultant-mobile',
-			'cpc_email'          => 'consultant-email',
-			'cpc_linkedin'       => 'consultant-linkedin',
-			'cpc_experience'     => 'consultant-experience',
-			'cpc_languages'      => 'consultant-langs',
-			'cpc_citizenship'    => 'consultant-citizenship',
-			'cpc_gender'         => 'consultant-gender',
-			'cpc_qualifications' => 'overview',
-			'cpc_clients'        => 'partners',
-			'cpc_education'      => 'education',
-			'cpc_services'       => 'consultant-services',
-			'cpc_subservices'    => 'consultant-sub-service',
-			'cpc_sectors'        => 'consultant-sectors',
-			'cpc_subsectors'     => 'consultant-sub-sectors',
-			'cpc_country_of_exp' => 'consultant-working-country',
+			'dpc_websites'     => 'general_website',
+			'dpc_email'        => 'general_email',
+			'dpc_telephone'    => 'general_telephone',
+			'specific_contact' => 'specific_contacts_info',
+			'dpc_headquarters' => 'dip-citizenship',
+			'dpc_countries'    => 'development-partner-country',
+			'dpc_overview'     => 'dip-submission-overview',
+			'dpc_clients'      => 'projects',
+			'dpc_services'     => 'development-partner-type-of-service',
+			'dpc_subservices'  => 'development-partner-sub-service',
+			'dpc_sectors'      => 'development-partner-sector',
+			'dpc_subsectors'   => 'development-partner-sub-sector',
+			'dpc_categories'   => 'development-partner-type',
 		);
 
 		foreach ( $fields as $key => $meta_key ) {
 			if ( isset( $_POST[ $key ] ) ) {
-				$value = in_array( $key, array( 'cpc_qualifications', 'cpc_clients' ), true )
+				$value = in_array( $key, array( 'dpc_overview', 'dpc_clients' ), true )
 					? wp_kses_post( $_POST[ $key ] )
 					: $_POST[ $key ];
 				update_post_meta( $post_id, $meta_key, $value );
