@@ -99,7 +99,7 @@ abstract class FormHandler implements FormHandlerInterface {
         $this->errors         = $errors_to_use;
         $this->submitted_data = $submitted_data_to_use;
 
-        if ( is_user_logged_in() ) {
+        if ( is_user_logged_in() && empty( $submitted_data_to_use ) ) {
             $current_user = wp_get_current_user();
             $submitted_posts = get_user_meta( $current_user->ID, $this->get_submitted_posts_meta_key() );
             if ( is_array( $submitted_posts ) ) {

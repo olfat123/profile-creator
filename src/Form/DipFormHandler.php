@@ -7,7 +7,7 @@ class DipFormHandler extends FormHandler {
 	 *
 	 * @var string
 	 */
-    protected $type = 'dip';
+    protected $type = 'implement';
 
     /**
      * Get the template path for the dip form.
@@ -55,9 +55,9 @@ class DipFormHandler extends FormHandler {
 			return;
 		}
 
-		$name  = sanitize_text_field( $_POST['cpc_name'] );
-		$email = sanitize_email( $_POST['cpc_email'] );
-		$bio   = sanitize_textarea_field( $_POST['cpc_qualifications'] );
+		$name  = sanitize_text_field( $_POST['dpc_name'] );
+		// $email = sanitize_email( $_POST['cpc_email'] );
+		$bio   = sanitize_textarea_field( $_POST['dpc_overview'] );
 
 		if ( ! is_user_logged_in() ) {
 			$user_id = $this->user_creator->create_user( $name, $email, $bio );
@@ -76,7 +76,7 @@ class DipFormHandler extends FormHandler {
 						break;
 					case 'empty_user_login':
 					case 'invalid_username':
-						$errors['cpc_name'] = __( 'Invalid name provided.', 'profile-creator' );
+						$errors['dpc_name'] = __( 'Invalid name provided.', 'profile-creator' );
 						break;
 					default:
 						$errors['user_creation'] = $error_message; // Fallback for unexpected errors
@@ -97,10 +97,10 @@ class DipFormHandler extends FormHandler {
 
 		$this->errors = array();
 
-		$photo_id  = $this->handle_file_upload( 'cpc_photo', $user_id );
+		$photo_id  = $this->handle_file_upload( 'dpc_photo', $user_id );
 		$photo_url = wp_get_attachment_url( $photo_id );
 
-		$cv_id  = $this->handle_file_upload( 'cpc_cv', $user_id );
+		$cv_id  = $this->handle_file_upload( 'dpc_cv', $user_id );
 		$cv_url = wp_get_attachment_url( $cv_id );
 
 		$post_id = wp_insert_post(
@@ -112,13 +112,17 @@ class DipFormHandler extends FormHandler {
 				'post_author'  => $user_id,
 			)
 		);
-
+		error_log( 'Post ID: ' . $post_id );
+		if ( is_wp_error( $post_id ) ) {
+			$this->errors['post_creation'] = __( 'Failed to create post.', 'profile-creator' );
+			echo $this->render_form( $this->errors, $submitted_data );
+			return;
+		}
 		if ( $photo_id ) {
 			set_post_thumbnail( $post_id, $photo_id );
 		}
 
-		update_post_meta( $post_id, 'consult_photo', $photo_url );
-		update_post_meta( $post_id, 'consult_cv', $cv_url );
+		update_post_meta( $post_id, 'dip_pdf', $cv_url );
 		$this->save_meta_data( $user_id, $post_id );
 
 		$create_consultant_email = get_option( 'createConsultEmail' );
@@ -127,15 +131,14 @@ class DipFormHandler extends FormHandler {
 		$headers  = 'MIME-Version: 1.0' . "\r\n";
 		$headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
 		$headers .= 'From: DARPE <info@darpe.me>' . "\r\n";
-		$message  = 'New Individual Consultant entry submitted: (' . $name . ')<br>' . 'Have a good day!';
+		$message  = 'New DIP entry submitted: (' . $name . ')<br>' . 'Have a good day!';
 		wp_mail( $create_consultant_email, 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
 		// wp_mail( 'info@darpe.me', 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
 		if ( ! ( empty( $current_user->user_email ) ) ) {
 			add_post_meta( $post_id, 'author_email', $current_user->user_email );
 		}
 		add_post_meta( $post_id, 'author_name', $current_user->display_name );
-		add_user_meta( $user_id, 'consultant_submitted_posts', $post_id );
-
+		add_user_meta( $user_id, $this->get_submitted_posts_meta_key(), $post_id );
 		wp_safe_redirect( get_permalink( $post_id ) );
 		exit;
 	}
@@ -155,8 +158,8 @@ class DipFormHandler extends FormHandler {
 		// 	$errors['cpc_email'] = __( 'Valid email is required', 'profile-creator' );
 		// }
 
-		if ( empty( $_POST['cpc_citizenship'] ) ) {
-			$errors['cpc_citizenship'] = __( 'Citizenship is required', 'profile-creator' );
+		if ( empty( $_POST['dpc_headquarters'] ) ) {
+			$errors['dpc_headquarters'] = __( 'Citizenship is required', 'profile-creator' );
 		}
 
 		if ( empty( $_FILES['dpc_photo']['name'] ) ) {
@@ -170,11 +173,11 @@ class DipFormHandler extends FormHandler {
 		if ( empty( $_POST['dpc_clients'] ) ) {
 			$errors['dpc_clients'] = __( 'Clients worked with is required', 'profile-creator' );
 		}
-		if ( empty( $_POST['dpc_services'] ) ) {
-			$errors['dpc_services'] = __( 'At least one service must be selected', 'profile-creator' );
+		if ( empty( $_POST['cpc_services'] ) ) {
+			$errors['cpc_services'] = __( 'At least one service must be selected', 'profile-creator' );
 		}
-		if ( empty( $_POST['dpc_sectors'] ) ) {
-			$errors['dpc_sectors'] = __( 'At least one sector must be selected', 'profile-creator' );
+		if ( empty( $_POST['cpc_sectors'] ) ) {
+			$errors['cpc_sectors'] = __( 'At least one sector must be selected', 'profile-creator' );
 		}
 
 		return $errors;
@@ -228,10 +231,10 @@ class DipFormHandler extends FormHandler {
 			'dpc_countries'    => 'development-partner-country',
 			'dpc_overview'     => 'dip-submission-overview',
 			'dpc_clients'      => 'projects',
-			'dpc_services'     => 'development-partner-type-of-service',
-			'dpc_subservices'  => 'development-partner-sub-service',
-			'dpc_sectors'      => 'development-partner-sector',
-			'dpc_subsectors'   => 'development-partner-sub-sector',
+			'cpc_services'     => 'development-partner-type-of-service',
+			'cpc_subservices'  => 'development-partner-sub-service',
+			'cpc_sectors'      => 'development-partner-sector',
+			'cpc_subsectors'   => 'development-partner-sub-sector',
 			'dpc_categories'   => 'development-partner-type',
 		);
 

@@ -12,21 +12,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( ! empty( $dip_submitted_post ) && null !== $dip_submitted_post ) {
-	$submitted_data[ 'dpc_name' ]         = get_the_title( $dip_submitted_post );
-	$submitted_data[ 'dpc_websites' ]     = get_post_meta( $dip_submitted_post, 'general_website', true );
-	$submitted_data[ 'dpc_email' ]        = get_post_meta( $dip_submitted_post, 'general_email', true );
-	$submitted_data[ 'dpc_telephone' ]    = get_post_meta( $dip_submitted_post, 'general_telephone', true );
-	$submitted_data[ 'specific_contact' ] = get_post_meta( $dip_submitted_post, 'specific_contacts_info', true );
-	$submitted_data[ 'dpc_headquarters' ] = get_post_meta( $dip_submitted_post, 'dip-citizenship', true );
-	$submitted_data[ 'dpc_countries' ]    = get_post_meta( $dip_submitted_post, 'development-partner-country', true );
-	$submitted_data[ 'dpc_overview' ]     = get_post_meta( $dip_submitted_post, 'dip-submission-overview', true );
-	$submitted_data[ 'dpc_clients' ]      = get_post_meta( $dip_submitted_post, 'projects', true );
-	$submitted_data[ 'dpc_services' ]     = get_post_meta( $dip_submitted_post, 'development-partner-type-of-service', true );
-	$submitted_data[ 'dpc_subservices' ]  = get_post_meta( $dip_submitted_post, 'development-partner-sub-service', true );
-	$submitted_data[ 'dpc_sectors' ]      = get_post_meta( $dip_submitted_post, 'development-partner-sector', true );
-	$submitted_data[ 'dpc_subsectors' ]   = get_post_meta( $dip_submitted_post, 'development-partner-sub-sector', true );
-	$submitted_data[ 'dpc_categories' ]   = get_post_meta( $dip_submitted_post, 'development-partner-type', true );
+if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
+	$submitted_data[ 'dpc_name' ]         = get_the_title( $submitted_post );
+	$submitted_data[ 'dpc_websites' ]     = get_post_meta( $submitted_post, 'general_website', true );
+	$submitted_data[ 'dpc_email' ]        = get_post_meta( $submitted_post, 'general_email', true );
+	$submitted_data[ 'dpc_telephone' ]    = get_post_meta( $submitted_post, 'general_telephone', true );
+	$submitted_data[ 'specific_contact' ] = get_post_meta( $submitted_post, 'specific_contacts_info', true );
+	$submitted_data[ 'dpc_headquarters' ] = get_post_meta( $submitted_post, 'dip-citizenship', true );
+	$submitted_data[ 'dpc_countries' ]    = get_post_meta( $submitted_post, 'development-partner-country', true );
+	$submitted_data[ 'dpc_overview' ]     = get_post_meta( $submitted_post, 'dip-submission-overview', true );
+	$submitted_data[ 'dpc_clients' ]      = get_post_meta( $submitted_post, 'projects', true );
+	$submitted_data[ 'cpc_services' ]     = get_post_meta( $submitted_post, 'development-partner-type-of-service', true );
+	$submitted_data[ 'cpc_subservices' ]  = get_post_meta( $submitted_post, 'development-partner-sub-service', true );
+	$submitted_data[ 'cpc_sectors' ]      = get_post_meta( $submitted_post, 'development-partner-sector', true );
+	$submitted_data[ 'cpc_subsectors' ]   = get_post_meta( $submitted_post, 'development-partner-sub-sector', true );
+	$submitted_data[ 'dpc_categories' ]   = get_post_meta( $submitted_post, 'development-partner-type', true );
 
 }
 
@@ -36,7 +36,7 @@ if ( ! empty( $dip_submitted_post ) && null !== $dip_submitted_post ) {
     <div class="alert alert-danger"><?php echo esc_html( print_r( $errors, true ) ); ?></div>
 <?php endif; ?>
 <form method="post" class="cpc-profile-form container" enctype="multipart/form-data">
-	<?php wp_nonce_field( 'cpc_create_dip_profile', 'cpc_nonce' ); ?>
+	<?php wp_nonce_field( 'cpc_create_implement_profile', 'cpc_nonce' ); ?>
 	
 	<div class="row mb-3">
 		<div class="col-md-6">
@@ -47,9 +47,36 @@ if ( ! empty( $dip_submitted_post ) && null !== $dip_submitted_post ) {
 				<div class="invalid-feedback"><?php echo esc_html( $errors['dpc_name'] ); ?></div>
 			<?php endif; ?>
 		</div>
+		<?php if ( ! is_user_logged_in() ) : ?>
+	
+			<div class="col-md-6">
+				<label for="cpc_email" class="form-label"><?php esc_html_e( 'E-mail', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
+				<input type="email" class="form-control <?php echo isset( $errors['cpc_email'] ) ? 'is-invalid' : ''; ?>" 
+					id="cpc_email" name="cpc_email" value="<?php echo esc_attr( $submitted_data['cpc_email'] ?? '' ); ?>" required>
+				<?php if ( isset( $errors['cpc_email'] ) ) : ?>
+					<div class="invalid-feedback"><?php echo esc_html( $errors['cpc_email'] ); ?></div>
+				<?php endif; ?>
+			</div>
+			<div class="col-md-6">
+				<label for="dpc_password" class="form-label"><?php esc_html_e( 'Password', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
+				<input type="password" class="form-control <?php echo isset( $errors['dpc_password'] ) ? 'is-invalid' : ''; ?>" 
+					id="dpc_password" name="dpc_password" value="<?php echo esc_attr( $submitted_data['dpc_password'] ?? '' ); ?>" required>
+				<?php if ( isset( $errors['dpc_password'] ) ) : ?>
+					<div class="invalid-feedback"><?php echo esc_html( $errors['dpc_password'] ); ?></div>
+				<?php endif; ?>
+			</div>
+		<?php endif ?>
 		<div class="col-md-6">
 			<label for="dpc_photo" class="form-label"><?php esc_html_e( 'Upload Your Photo', 'profile-creator' ); ?></label>
 			<input type="file" class="form-control" id="dpc_photo" name="dpc_photo" accept="image/*">
+			<!-- Image Preview -->
+			<div id="photo-preview-wrapper" class="mt-2">
+				<?php if ( ! empty( $submitted_data['dpc_photo'] ) ) : ?>
+					<img src="<?php echo esc_url( $submitted_data['dpc_photo'] ); ?>" alt="Photo Preview" id="photo-preview" class="img-thumbnail" style="max-width: 150px;">
+				<?php else : ?>
+					<img src="" alt="Photo Preview" id="photo-preview" class="img-thumbnail d-none" style="max-width: 150px;">
+				<?php endif; ?>
+			</div>
 		</div>
 	</div>
 	<div class="row mb-3">
@@ -117,18 +144,19 @@ if ( ! empty( $dip_submitted_post ) && null !== $dip_submitted_post ) {
 				<?php
 				$emails = $submitted_data['dpc_email'] ?? array( '' );
 				foreach ( $emails as $index => $email ) :
-				?>
-				<div class="email-entry mb-3">
-					<div class="row">
-						<div class="col-md-10">
-							<input type="email" class="form-control" name="dpc_email[<?php echo esc_attr( $index ); ?>]" value="<?php echo esc_attr( $email ); ?>" placeholder="Email">
-						</div>
-						<div class="col-md-2 text-end">
-							<button type="button" class="btn btn-danger btn-sm remove-email"><i class="fas fa-trash-alt"></i></button>
+					?>
+					<div class="email-entry mb-3">
+						<div class="row">
+							<div class="col-md-10">
+								<input type="email" class="form-control" name="dpc_email[<?php echo esc_attr( $index ); ?>]" value="<?php echo esc_attr( $email ); ?>" placeholder="Email">
+							</div>
+							<div class="col-md-2 text-end">
+								<button type="button" class="btn btn-danger btn-sm remove-email"><i class="fas fa-trash-alt"></i></button>
+							</div>
 						</div>
 					</div>
-				</div>
-				<?php endforeach; ?>
+					<?php 
+				endforeach; ?>
 			</div>
 			<button type="button" class="btn btn-secondary add-email mb-3"><?php esc_html_e( 'Add Email', 'profile-creator' ); ?></button>
             <div class="col-md-6">
@@ -174,7 +202,7 @@ if ( ! empty( $dip_submitted_post ) && null !== $dip_submitted_post ) {
 		
 		<div class="col-md-6">
 			<label for="dpc_cv" class="form-label"><?php esc_html_e( 'Upload Your Company profile', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
-			<input type="file" class="form-control <?php echo isset( $errors['dpc_cv'] ) ? 'is-invalid' : ''; ?>" id="cpc_cv" name="cpc_cv" accept=".pdf,.doc,.docx" required>
+			<input type="file" class="form-control <?php echo isset( $errors['dpc_cv'] ) ? 'is-invalid' : ''; ?>" id="cpc_cv" name="dpc_cv" accept=".pdf,.doc,.docx" required>
 			<?php if ( isset( $errors['dpc_cv'] ) ) : ?>
 				<div class="invalid-feedback"><?php echo esc_html( $errors['dpc_cv'] ); ?></div>
 			<?php endif; ?>
@@ -229,23 +257,23 @@ if ( ! empty( $dip_submitted_post ) && null !== $dip_submitted_post ) {
 	<div class="row mb-3">
 		<div class="col-md-6">
 			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Services', 'profile-creator' ); ?></h3>
-			<div class="mb-3 cpc-services card p-3 <?php echo isset( $errors['dpc_services'] ) ? 'is-invalid' : ''; ?>">
+			<div class="mb-3 cpc-services card p-3 <?php echo isset( $errors['cpc_services'] ) ? 'is-invalid' : ''; ?>">
 				<div class="cpc-parent-list">
-					<?php $this->render_service_checkboxes( isset( $submitted_data['dpc_services'] ) ? $submitted_data[ 'dpc_services' ] : array(), isset( $submitted_data['dpc_subservices'] ) ? $submitted_data[ 'dpc_subservices' ] : array() ); ?>
+					<?php $this->render_service_checkboxes( isset( $submitted_data['cpc_services'] ) ? $submitted_data[ 'cpc_services' ] : array(), isset( $submitted_data['cpc_subservices'] ) && ! empty( $submitted_data['cpc_subservices'] ) ? $submitted_data[ 'cpc_subservices' ] : array() ); ?>
 				</div>
-				<?php if ( isset( $errors['dpc_services'] ) ) : ?>
-					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['dpc_services'] ); ?></div>
+				<?php if ( isset( $errors['cpc_services'] ) ) : ?>
+					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['cpc_services'] ); ?></div>
 				<?php endif; ?>
 			</div>
 		</div>
 		<div class="col-md-6">
 			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Sectors', 'profile-creator' ); ?></h3>
-			<div class="mb-3 cpc-sectors card p-3 <?php echo isset( $errors['dpc_sectors'] ) ? 'is-invalid' : ''; ?>">
+			<div class="mb-3 cpc-sectors card p-3 <?php echo isset( $errors['cpc_sectors'] ) ? 'is-invalid' : ''; ?>">
 				<div class="cpc-parent-list">
-					<?php $this->render_sector_checkboxes( isset( $submitted_data['dpc_sectors'] ) ? $submitted_data[ 'dpc_sectors' ] : array(), isset( $submitted_data['dpc_subsectors'] ) ? $submitted_data[ 'dpc_subsectors' ] : array() ); ?>
+					<?php $this->render_sector_checkboxes( isset( $submitted_data['cpc_sectors'] ) ? $submitted_data[ 'cpc_sectors' ] : array(), isset( $submitted_data['cpc_subsectors'] ) && ! empty( $submitted_data['cpc_subsectors'] ) ? $submitted_data[ 'cpc_subsectors' ] : array() ); ?>
 				</div>
-				<?php if ( isset( $errors['dpc_sectors'] ) ) : ?>
-					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['dpc_sectors'] ); ?></div>
+				<?php if ( isset( $errors['cpc_sectors'] ) ) : ?>
+					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['cpc_sectors'] ); ?></div>
 				<?php endif; ?>
 			</div>
 		</div>
@@ -255,6 +283,6 @@ if ( ! empty( $dip_submitted_post ) && null !== $dip_submitted_post ) {
 		<label class="form-check-label"><?php echo esc_html( get_option( 'dap_statement' ) ); ?></label>
 	</div>
 
-	<input type="hidden" name="cpc_type" value="dip">
-	<button type="submit" name="cpc_submit" class="btn-primary"><?php printf( esc_html__( 'Create %s Profile', 'profile-creator' ), 'dip' ); ?></button>
+	<input type="hidden" name="cpc_type" value="implement">
+	<button type="submit" name="cpc_submit" class="btn-primary"><?php printf( esc_html__( 'Create %s Profile', 'profile-creator' ), 'implement' ); ?></button>
 </form>
