@@ -40,7 +40,34 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 <?php endif; ?>
 <form method="post" class="cpc-profile-form container" enctype="multipart/form-data">
 	<?php wp_nonce_field( 'cpc_create_consultant_profile', 'cpc_nonce' ); ?>
-	
+
+	<div class="row mb-3">
+		<div class="col-md-12">
+			<h2><?php esc_html_e( 'Create Consultant Profile', 'profile-creator' ); ?></h2>
+			<p><?php esc_html_e( 'Please fill out the form below to create your consultant profile.', 'profile-creator' ); ?></p>
+		</div>
+	</div>
+	<div class="row mb-3">
+		<?php if ( ! is_user_logged_in() ) : ?>
+			<h3 class="mt-4 mb-3"><?php esc_html_e( 'User Information', 'profile-creator' ); ?></h3>
+			<div class="col-md-6">
+				<label for="cpc_email" class="form-label"><?php esc_html_e( 'E-mail', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
+				<input type="email" class="form-control <?php echo isset( $errors['cpc_email'] ) ? 'is-invalid' : ''; ?>" 
+					id="cpc_email" name="cpc_email" value="<?php echo esc_attr( $submitted_data['cpc_email'] ?? '' ); ?>" required>
+				<?php if ( isset( $errors['cpc_email'] ) ) : ?>
+					<div class="invalid-feedback"><?php echo esc_html( $errors['cpc_email'] ); ?></div>
+				<?php endif; ?>
+			</div>
+			<div class="col-md-6">
+				<label for="cpc_password" class="form-label"><?php esc_html_e( 'Password', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
+				<input type="password" class="form-control <?php echo isset( $errors['cpc_password'] ) ? 'is-invalid' : ''; ?>" 
+					id="cpc_password" name="cpc_password" value="<?php echo esc_attr( $submitted_data['cpc_password'] ?? '' ); ?>" required>
+				<?php if ( isset( $errors['cpc_password'] ) ) : ?>
+					<div class="invalid-feedback"><?php echo esc_html( $errors['cpc_password'] ); ?></div>
+				<?php endif; ?>
+			</div>
+		<?php endif ?>
+	</div>
 	<div class="row mb-3">
 		<div class="col-md-6">
 			<label for="cpc_name" class="form-label"><?php esc_html_e( 'Name', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
@@ -51,28 +78,36 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 			<?php endif; ?>
 		</div>
 		<div class="col-md-6">
-			<label for="cpc_photo" class="form-label"><?php esc_html_e( 'Upload Your Photo', 'profile-creator' ); ?></label>
-			<input type="file" class="form-control" id="cpc_photo" name="cpc_photo" accept="image/*">
+			<label for="dpc_photo" class="form-label"><?php esc_html_e( 'Upload Your Photo', 'profile-creator' ); ?></label>
+			<input type="file" class="form-control" id="dpc_photo" name="dpc_photo" accept="image/*">
+			<!-- Image Preview -->
+			<div id="photo-preview-wrapper" class="mt-2">
+				<?php if ( ! empty( $submitted_data['dpc_photo'] ) ) : ?>
+					<img src="<?php echo esc_url( $submitted_data['dpc_photo'] ); ?>" alt="Photo Preview" id="photo-preview" class="img-thumbnail" style="max-width: 150px;">
+				<?php else : ?>
+					<img src="" alt="Photo Preview" id="photo-preview" class="img-thumbnail d-none" style="max-width: 150px;">
+				<?php endif; ?>
+			</div>
 		</div>
 	</div>
 
 	<h3 class="mt-4 mb-3"><?php esc_html_e( 'Contact Information', 'profile-creator' ); ?></h3>
 	<div class="row mb-3">
-		<div class="col-md-6">
-			<label for="cpc_email" class="form-label"><?php esc_html_e( 'E-mail', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
-			<input type="email" class="form-control <?php echo isset( $errors['cpc_email'] ) ? 'is-invalid' : ''; ?>" 
-				id="cpc_email" name="cpc_email" value="<?php echo esc_attr( $submitted_data['cpc_email'] ?? '' ); ?>" required>
-			<?php if ( isset( $errors['cpc_email'] ) ) : ?>
-				<div class="invalid-feedback"><?php echo esc_html( $errors['cpc_email'] ); ?></div>
-			<?php endif; ?>
-		</div>
+		<?php if ( is_user_logged_in() ) : ?>
+			<div class="col-md-6">
+				<label for="cpc_email" class="form-label"><?php esc_html_e( 'E-mail', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
+				<input type="email" class="form-control <?php echo isset( $errors['cpc_email'] ) ? 'is-invalid' : ''; ?>" 
+					id="cpc_email" name="cpc_email" value="<?php echo esc_attr( $submitted_data['cpc_email'] ?? '' ); ?>" required>
+				<?php if ( isset( $errors['cpc_email'] ) ) : ?>
+					<div class="invalid-feedback"><?php echo esc_html( $errors['cpc_email'] ); ?></div>
+				<?php endif; ?>
+			</div>
+		<?php endif; ?>
 		<div class="col-md-6">
 			<label for="cpc_telephone" class="form-label"><?php esc_html_e( 'Telephone', 'profile-creator' ); ?></label>
 			<input type="tel" class="form-control" id="cpc_telephone" name="cpc_telephone" 
 				value="<?php echo esc_attr( $submitted_data['cpc_telephone'] ?? '' ); ?>">
 		</div>
-	</div>
-	<div class="row mb-3">
 		<div class="col-md-6">
 			<label for="cpc_mobile" class="form-label"><?php esc_html_e( 'Mobile', 'profile-creator' ); ?></label>
 			<input type="tel" class="form-control" id="cpc_mobile" name="cpc_mobile" 
@@ -83,9 +118,7 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 			<input type="url" class="form-control" id="cpc_linkedin" name="cpc_linkedin" 
 				value="<?php echo esc_attr( $submitted_data['cpc_linkedin'] ?? '' ); ?>">
 		</div>
-	</div>
 
-	<div class="row mb-3">
 		<div class="col-md-6">
 			<label for="cpc_experience" class="form-label"><?php esc_html_e( 'Years of Experience', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
 			<input type="number" class="form-control <?php echo isset( $errors['cpc_experience'] ) ? 'is-invalid' : ''; ?>" 
@@ -136,9 +169,6 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 				<div class="invalid-feedback"><?php echo esc_html( $errors['cpc_country_of_exp'] ); ?></div>
 			<?php endif; ?>
 		</div>
-	</div>
-
-	<div class="row mb-3">
 		<div class="col-md-6">
 			<label for="cpc_gender" class="form-label"><?php esc_html_e( 'Gender', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
 			<select id="cpc_gender" name="cpc_gender" class="form-select <?php echo isset( $errors['cpc_gender'] ) ? 'is-invalid' : ''; ?>" required>
@@ -158,7 +188,6 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 			<?php endif; ?>
 		</div>
 	</div>
-
 	<div class="row mb-3">
 		<div class="col-md-6">
 			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Key Qualification Summary', 'profile-creator' ); ?></h3>
@@ -258,7 +287,7 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Services', 'profile-creator' ); ?></h3>
 			<div class="mb-3 cpc-services card p-3 <?php echo isset( $errors['cpc_services'] ) ? 'is-invalid' : ''; ?>">
 				<div class="cpc-parent-list">
-					<?php $this->render_service_checkboxes( $submitted_data[ 'cpc_services' ], $submitted_data[ 'cpc_subservices' ] ); ?>
+					<?php $this->render_service_checkboxes( isset( $submitted_data['cpc_services'] ) ? $submitted_data[ 'cpc_services' ] : array(), isset( $submitted_data['cpc_subservices'] ) && ! empty( $submitted_data['cpc_subservices'] ) ? $submitted_data[ 'cpc_subservices' ] : array() ); ?>
 				</div>
 				<?php if ( isset( $errors['cpc_services'] ) ) : ?>
 					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['cpc_services'] ); ?></div>
@@ -269,7 +298,7 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Sectors', 'profile-creator' ); ?></h3>
 			<div class="mb-3 cpc-sectors card p-3 <?php echo isset( $errors['cpc_sectors'] ) ? 'is-invalid' : ''; ?>">
 				<div class="cpc-parent-list">
-					<?php $this->render_sector_checkboxes( $submitted_data[ 'cpc_sectors' ], $submitted_data[ 'cpc_subsectors' ] ); ?>
+					<?php $this->render_sector_checkboxes( isset( $submitted_data['cpc_sectors'] ) ? $submitted_data[ 'cpc_sectors' ] : array(), isset( $submitted_data['cpc_subsectors'] ) && ! empty( $submitted_data['cpc_subsectors'] ) ? $submitted_data[ 'cpc_subsectors' ] : array() ); ?>
 				</div>
 				<?php if ( isset( $errors['cpc_sectors'] ) ) : ?>
 					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['cpc_sectors'] ); ?></div>

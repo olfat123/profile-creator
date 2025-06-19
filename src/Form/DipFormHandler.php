@@ -46,7 +46,6 @@ class DipFormHandler extends FormHandler {
 		if ( ! empty( $errors ) ) {
 			$this->errors         = $errors;
 			$this->submitted_data = $submitted_data;
-			error_log( 'Validation errors found: ' . print_r( $errors, true ) );
 			// Re-render the form with errors and submitted data.
 			if ( ! headers_sent() ) {
 				ob_start();
@@ -56,11 +55,13 @@ class DipFormHandler extends FormHandler {
 		}
 
 		$name  = sanitize_text_field( $_POST['dpc_name'] );
-		// $email = sanitize_email( $_POST['cpc_email'] );
 		$bio   = sanitize_textarea_field( $_POST['dpc_overview'] );
-
+		
 		if ( ! is_user_logged_in() ) {
-			$user_id = $this->user_creator->create_user( $name, $email, $bio );
+			$email    = isset( $_POST['dpc_email'] ) ? sanitize_email( $_POST['dpc_email'] ) : '';
+			$password = isset( $_POST['dpc_password'] ) ? sanitize_text_field( $_POST['dpc_password'] ) : '';
+
+			$user_id = $this->user_creator->create_user( $name, $email, $bio, $password );
 			if ( is_wp_error( $user_id ) ) {
 				$error_code    = $user_id->get_error_code();
 				$error_message = $user_id->get_error_message( $error_code );

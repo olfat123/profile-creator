@@ -68,12 +68,13 @@ class ConsultantFormHandler extends FormHandler {
 			return;
 		}
 
-		$name  = sanitize_text_field( $_POST['cpc_name'] );
-		$email = sanitize_email( $_POST['cpc_email'] );
-		$bio   = sanitize_textarea_field( $_POST['cpc_qualifications'] );
+		$name     = sanitize_text_field( $_POST['cpc_name'] );
+		$email    = sanitize_email( $_POST['cpc_email'] );
+		$bio      = sanitize_textarea_field( $_POST['cpc_qualifications'] );
+		$password = isset( $_POST['cpc_password'] ) ? sanitize_text_field( $_POST['cpc_password'] ) : '';
 
 		if ( ! is_user_logged_in() ) {
-			$user_id = $this->user_creator->create_user( $name, $email, $bio );
+			$user_id = $this->user_creator->create_user( $name, $email, $bio, $password );
 			if ( is_wp_error( $user_id ) ) {
 				$error_code    = $user_id->get_error_code();
 				$error_message = $user_id->get_error_message( $error_code );
@@ -110,7 +111,7 @@ class ConsultantFormHandler extends FormHandler {
 
 		$this->errors = array();
 
-		$photo_id  = $this->handle_file_upload( 'cpc_photo', $user_id );
+		$photo_id  = $this->handle_file_upload( 'dpc_photo', $user_id );
 		$photo_url = wp_get_attachment_url( $photo_id );
 
 		$cv_id  = $this->handle_file_upload( 'cpc_cv', $user_id );

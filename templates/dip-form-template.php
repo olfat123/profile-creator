@@ -39,16 +39,14 @@ if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
 	<?php wp_nonce_field( 'cpc_create_implement_profile', 'cpc_nonce' ); ?>
 	
 	<div class="row mb-3">
-		<div class="col-md-6">
-			<label for="dpc_name" class="form-label"><?php esc_html_e( 'Name', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
-			<input type="text" class="form-control <?php echo isset( $errors['dpc_name'] ) ? 'is-invalid' : ''; ?>" 
-				id="dpc_name" name="dpc_name" value="<?php echo esc_attr( $submitted_data['dpc_name'] ?? '' ); ?>" required>
-			<?php if ( isset( $errors['dpc_name'] ) ) : ?>
-				<div class="invalid-feedback"><?php echo esc_html( $errors['dpc_name'] ); ?></div>
-			<?php endif; ?>
+		<div class="col-md-12">
+			<h2 class="mt-4 mb-3"><?php esc_html_e( 'Create a Development Partner Profile', 'profile-creator' ); ?></h2>
+			<p><?php esc_html_e( 'Please fill out the form below to create your development partner profile.', 'profile-creator' ); ?></p>
 		</div>
+	</div>
+	<div class="row mb-3">
 		<?php if ( ! is_user_logged_in() ) : ?>
-	
+			<h3 class="mt-4 mb-3"><?php esc_html_e( 'User Information', 'profile-creator' ); ?></h3>
 			<div class="col-md-6">
 				<label for="cpc_email" class="form-label"><?php esc_html_e( 'E-mail', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
 				<input type="email" class="form-control <?php echo isset( $errors['cpc_email'] ) ? 'is-invalid' : ''; ?>" 
@@ -66,6 +64,17 @@ if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
 				<?php endif; ?>
 			</div>
 		<?php endif ?>
+	</div>
+	<div class="row mb-3">
+		<div class="col-md-6">
+			<label for="dpc_name" class="form-label"><?php esc_html_e( 'Name', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
+			<input type="text" class="form-control <?php echo isset( $errors['dpc_name'] ) ? 'is-invalid' : ''; ?>" 
+				id="dpc_name" name="dpc_name" value="<?php echo esc_attr( $submitted_data['dpc_name'] ?? '' ); ?>" required>
+			<?php if ( isset( $errors['dpc_name'] ) ) : ?>
+				<div class="invalid-feedback"><?php echo esc_html( $errors['dpc_name'] ); ?></div>
+			<?php endif; ?>
+		</div>
+		
 		<div class="col-md-6">
 			<label for="dpc_photo" class="form-label"><?php esc_html_e( 'Upload Your Photo', 'profile-creator' ); ?></label>
 			<input type="file" class="form-control" id="dpc_photo" name="dpc_photo" accept="image/*">
