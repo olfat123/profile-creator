@@ -39,7 +39,7 @@ if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
 	<?php wp_nonce_field( 'cpc_create_implement_profile', 'cpc_nonce' ); ?>
 	
 	<div class="row mb-3">
-		<div class="col-md-12">
+		<div class="col-md-12" style="text-align: center;">
 			<h2 class="mt-4 mb-3"><?php esc_html_e( 'Create a Development Partner Profile', 'profile-creator' ); ?></h2>
 			<p><?php esc_html_e( 'Please fill out the form below to create your development partner profile.', 'profile-creator' ); ?></p>
 		</div>

@@ -12,37 +12,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_post ) {
-	$submitted_data[ 'cpc_name' ]           = get_the_title( $consultant_submitted_post );
-	$submitted_data[ 'cpc_email' ]          = get_post_meta( $consultant_submitted_post, 'consultant-email', true );
-	$submitted_data[ 'cpc_telephone' ]      = get_post_meta( $consultant_submitted_post, 'consultant-telephone', true );
-	$submitted_data[ 'cpc_mobile' ]         = get_post_meta( $consultant_submitted_post, 'consultant-mobile', true );
-	$submitted_data[ 'cpc_linkedin' ]       = get_post_meta( $consultant_submitted_post, 'consultant-linkedin', true );
-	$submitted_data[ 'cpc_experience' ]     = get_post_meta( $consultant_submitted_post, 'consultant-experience', true );
-	$submitted_data[ 'cpc_languages' ]      = get_post_meta( $consultant_submitted_post, 'consultant-langs', true );
-	$submitted_data[ 'cpc_citizenship' ]    = get_post_meta( $consultant_submitted_post, 'consultant-citizenship', true );
-	$submitted_data[ 'cpc_country_of_exp' ] = get_post_meta( $consultant_submitted_post, 'consultant-working-country', true );
-	$submitted_data[ 'cpc_gender' ]         = get_post_meta( $consultant_submitted_post, 'consultant-gender', true );
-	$submitted_data[ 'cpc_qualifications' ] = get_post_meta( $consultant_submitted_post, 'overview', true );
-	$submitted_data[ 'cpc_clients' ]        = get_post_meta( $consultant_submitted_post, 'partners', true );
-	$submitted_data[ 'cpc_education' ]      = get_post_meta( $consultant_submitted_post, 'education', true );
-	$submitted_data[ 'cpc_services' ]       = get_post_meta( $consultant_submitted_post, 'consultant-services', true );
-	$submitted_data[ 'cpc_subservices' ]    = get_post_meta( $consultant_submitted_post, 'consultant-sub-service', true );
-	$submitted_data[ 'cpc_sectors' ]        = get_post_meta( $consultant_submitted_post, 'consultant-sectors', true );
-	$submitted_data[ 'cpc_subsectors' ]     = get_post_meta( $consultant_submitted_post, 'consultant-sub-sectors', true );
+if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
+	$submitted_data[ 'cpc_name' ]           = get_the_title( $submitted_post );
+	$submitted_data[ 'cpc_email' ]          = get_post_meta( $submitted_post, 'consultant-email', true );
+	$submitted_data[ 'cpc_telephone' ]      = get_post_meta( $submitted_post, 'consultant-telephone', true );
+	$submitted_data[ 'cpc_mobile' ]         = get_post_meta( $submitted_post, 'consultant-mobile', true );
+	$submitted_data[ 'cpc_linkedin' ]       = get_post_meta( $submitted_post, 'consultant-linkedin', true );
+	$submitted_data[ 'cpc_experience' ]     = get_post_meta( $submitted_post, 'consultant-experience', true );
+	$submitted_data[ 'cpc_languages' ]      = get_post_meta( $submitted_post, 'consultant-langs', true );
+	$submitted_data[ 'cpc_citizenship' ]    = get_post_meta( $submitted_post, 'consultant-citizenship', true );
+	$submitted_data[ 'cpc_country_of_exp' ] = get_post_meta( $submitted_post, 'consultant-working-country', true );
+	$submitted_data[ 'cpc_gender' ]         = get_post_meta( $submitted_post, 'consultant-gender', true );
+	$submitted_data[ 'cpc_qualifications' ] = get_post_meta( $submitted_post, 'overview', true );
+	$submitted_data[ 'cpc_clients' ]        = get_post_meta( $submitted_post, 'partners', true );
+	$submitted_data[ 'cpc_education' ]      = get_post_meta( $submitted_post, 'education', true );
+	$submitted_data[ 'cpc_services' ]       = get_post_meta( $submitted_post, 'consultant-services', true );
+	$submitted_data[ 'cpc_subservices' ]    = get_post_meta( $submitted_post, 'consultant-sub-service', true );
+	$submitted_data[ 'cpc_sectors' ]        = get_post_meta( $submitted_post, 'consultant-sectors', true );
+	$submitted_data[ 'cpc_subsectors' ]     = get_post_meta( $submitted_post, 'consultant-sub-sectors', true );
 
 }
 
 ?>
 
 <?php if ( ! empty( $errors ) ) : ?>
-    <div class="alert alert-danger"><?php echo esc_html( print_r( $errors, true ) ); ?></div>
+	<div class="alert alert-danger">
+		<ul>
+			<?php
+			foreach ( $errors as $error ) {
+				?>
+				<li><?php echo esc_html( $error ); ?></li>
+				<?php
+			}
+			?>
+		</ul>
+	</div>
 <?php endif; ?>
 <form method="post" class="cpc-profile-form container" enctype="multipart/form-data">
 	<?php wp_nonce_field( 'cpc_create_consultant_profile', 'cpc_nonce' ); ?>
 
 	<div class="row mb-3">
-		<div class="col-md-12">
+		<div class="col-md-12" style="text-align: center;">
 			<h2><?php esc_html_e( 'Create Consultant Profile', 'profile-creator' ); ?></h2>
 			<p><?php esc_html_e( 'Please fill out the form below to create your consultant profile.', 'profile-creator' ); ?></p>
 		</div>
@@ -182,7 +192,7 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 		</div>
 		<div class="col-md-6">
 			<label for="cpc_cv" class="form-label"><?php esc_html_e( 'Upload Your CV', 'profile-creator' ); ?> <span class="text-danger">*</span></label>
-			<input type="file" class="form-control <?php echo isset( $errors['cpc_cv'] ) ? 'is-invalid' : ''; ?>" id="cpc_cv" name="cpc_cv" accept=".pdf,.doc,.docx" required>
+			<input type="file" class="form-control <?php echo isset( $errors['cpc_cv'] ) ? 'is-invalid' : ''; ?>" id="cpc_cv" name="cpc_cv" accept=".pdf,.doc,.docx">
 			<?php if ( isset( $errors['cpc_cv'] ) ) : ?>
 				<div class="invalid-feedback"><?php echo esc_html( $errors['cpc_cv'] ); ?></div>
 			<?php endif; ?>
@@ -206,7 +216,7 @@ if ( ! empty( $consultant_submitted_post ) && null !== $consultant_submitted_pos
 			</div>
 		</div>
 		<div class="col-md-6">
-			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Client(s) Worked With', 'profile-creator' ); ?></h3>
+			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Client(s) Worked With', 'profile-creator' ); ?> <span class="text-danger">*</span></h3>
 			<div class="mb-3 <?php echo isset( $errors['cpc_clients'] ) ? 'is-invalid' : ''; ?>">
 				<?php
 				wp_editor(
