@@ -23,22 +23,22 @@ class ConsultantFormHandler extends FormHandler {
 	protected $type = 'consultant';
 
 	/**
-     * Get the template path for the consultant form.
-     *
-     * @return string Path to the form template file.
-     */
-    protected function get_template_path(): string {
-        return PROFILE_CREATOR_PLUGIN_DIR_PATH . '/templates/consultant-form-template.php';
-    }
+	 * Get the template path for the consultant form.
+	 *
+	 * @return string Path to the form template file.
+	 */
+	protected function get_template_path(): string {
+		return defined( 'PROFILE_CREATOR_PLUGIN_DIR_PATH' ) ? PROFILE_CREATOR_PLUGIN_DIR_PATH . '/templates/consultant-form-template.php' : '';
+	}
 
-    /**
-     * Get the user meta key for submitted consultant posts.
-     *
-     * @return string Meta key for storing submitted post IDs.
-     */
-    protected function get_submitted_posts_meta_key(): string {
-        return 'consultant_submitted_posts';
-    }
+	/**
+	 * Get the user meta key for submitted consultant posts.
+	 *
+	 * @return string Meta key for storing submitted post IDs.
+	 */
+	protected function get_submitted_posts_meta_key(): string {
+		return 'consultant_submitted_posts';
+	}
 
 	/**
 	 * Process the submitted form data.
@@ -48,7 +48,7 @@ class ConsultantFormHandler extends FormHandler {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( $_POST['cpc_nonce'], "cpc_create_{$this->type}_profile" ) ) {
+		if ( ! isset( $_POST['cpc_nonce'] ) || ! wp_verify_nonce( $_POST['cpc_nonce'], 'cpc_create_' . $this->type . '_profile' ) ) {
 			return;
 		}
 		$this->errors = array();
@@ -59,7 +59,6 @@ class ConsultantFormHandler extends FormHandler {
 		if ( ! empty( $errors ) ) {
 			$this->errors         = $errors;
 			$this->submitted_data = $submitted_data;
-			error_log( 'Validation errors found: ' . print_r( $errors, true ) );
 			// Re-render the form with errors and submitted data.
 			if ( ! headers_sent() ) {
 				ob_start();
@@ -68,9 +67,9 @@ class ConsultantFormHandler extends FormHandler {
 			return;
 		}
 
-		$name     = sanitize_text_field( $_POST['cpc_name'] );
-		$email    = sanitize_email( $_POST['cpc_email'] );
-		$bio      = sanitize_textarea_field( $_POST['cpc_qualifications'] );
+		$name     = isset( $_POST['cpc_name'] ) ? sanitize_text_field( $_POST['cpc_name'] ) : '';
+		$email    = isset( $_POST['cpc_email'] ) ? sanitize_email( $_POST['cpc_email'] ) : '';
+		$bio      = isset( $_POST['cpc_qualifications'] ) ? sanitize_textarea_field( $_POST['cpc_qualifications'] ) : '';
 		$password = isset( $_POST['cpc_password'] ) ? sanitize_text_field( $_POST['cpc_password'] ) : '';
 
 		if ( ! is_user_logged_in() ) {
@@ -83,7 +82,7 @@ class ConsultantFormHandler extends FormHandler {
 
 				switch ( $error_code ) {
 					case 'existing_user_email':
-						$errors['cpc_email'] = __( 'This email is already registered.', 'profile-creator ' );
+						$errors['cpc_email'] = __( 'This email is already registered.', 'profile-creator' );
 						break;
 					case 'existing_user_login':
 						$errors['user_creation'] = __( 'A user with a similar name already exists.', 'profile-creator' );
@@ -112,20 +111,51 @@ class ConsultantFormHandler extends FormHandler {
 		$this->errors = array();
 
 		$photo_id  = $this->handle_file_upload( 'dpc_photo', $user_id );
-		$photo_url = wp_get_attachment_url( $photo_id );
+		$photo_url = $photo_id ? wp_get_attachment_url( $photo_id ) : '';
 
 		$cv_id  = $this->handle_file_upload( 'cpc_cv', $user_id );
-		$cv_url = wp_get_attachment_url( $cv_id );
+		$cv_url = $cv_id ? wp_get_attachment_url( $cv_id ) : '';
+
+		// Check if user has a consultant profile
+		$submitted_posts = get_user_meta( $user_id, $this->get_submitted_posts_meta_key() );
+		if ( is_array( $submitted_posts ) && ! empty( $submitted_posts ) ) {
+			$existing_post_id = end( $submitted_posts );
+			if ( ! get_post( $existing_post_id ) ) {
+				$existing_post_id = null;
+			}
+		}
+
+		$post_data = array(
+			'post_title'   => $name,
+			'post_content' => wp_kses_post( $_POST['cpc_qualifications'] ),
+			'post_status'  => 'publish',
+			'post_type'    => $this->type . '-entries',
+			'post_author'  => $user_id,
+		);
+
+		if ( $existing_post_id ) {
+			$post_data['ID'] = $existing_post_id;
+			$post_id = wp_update_post( $post_data );
+		} else {
+			$post_id = wp_insert_post( $post_data );
+			add_user_meta( $user_id, $this->get_submitted_posts_meta_key(), $post_id );
+		}
 
 		$post_id = wp_insert_post(
 			array(
 				'post_title'   => $name,
-				'post_content' => wp_kses_post( $_POST['cpc_qualifications'] ),
+				'post_content' => wp_kses_post( isset( $_POST['cpc_qualifications'] ) ? $_POST['cpc_qualifications'] : '' ),
 				'post_status'  => 'publish',
-				'post_type'    => "{$this->type}-entries",
+				'post_type'    => $this->type . '-entries',
 				'post_author'  => $user_id,
 			)
 		);
+
+		if ( is_wp_error( $post_id ) ) {
+			$this->errors['post_creation'] = __( 'There was an error creating the profile post.', 'profile-creator' );
+			echo $this->render_form( $this->errors, $submitted_data );
+			return;
+		}
 
 		if ( $photo_id ) {
 			set_post_thumbnail( $post_id, $photo_id );
@@ -141,14 +171,12 @@ class ConsultantFormHandler extends FormHandler {
 		$headers  = 'MIME-Version: 1.0' . "\r\n";
 		$headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
 		$headers .= 'From: DARPE <info@darpe.me>' . "\r\n";
-		$message  = 'New Individual Consultant entry submitted: (' . $name . ')<br>' . 'Have a good day!';
-		wp_mail( $create_consultant_email, 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
-		// wp_mail( 'info@darpe.me', 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
-		if ( ! ( empty( $current_user->user_email ) ) ) {
+		$message  = sprintf( __( 'New Individual Consultant entry submitted: (%s)<br>Have a good day!', 'profile-creator' ), esc_html( $name ) );
+		wp_mail( $create_consultant_email, __( 'New Consultant Submission', 'profile-creator' ), $message, $headers, '-f info@darpe.me' );
+		if ( ! empty( $current_user->user_email ) ) {
 			add_post_meta( $post_id, 'author_email', $current_user->user_email );
 		}
 		add_post_meta( $post_id, 'author_name', $current_user->display_name );
-		add_user_meta( $user_id, 'consultant_submitted_posts', $post_id );
 
 		wp_safe_redirect( get_permalink( $post_id ) );
 		exit;
@@ -206,7 +234,7 @@ class ConsultantFormHandler extends FormHandler {
 	 * @param int    $user_id    The ID of the user uploading the file.
 	 * @return int|null Attachment ID on success, null on failure.
 	 */
-	private function handle_file_upload( string $field_name, int $user_id ): ?int {
+	private function handle_file_upload( $field_name, $user_id ) {
 		if ( ! empty( $_FILES[ $field_name ]['name'] ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 			$upload = wp_handle_upload( $_FILES[ $field_name ], array( 'test_form' => false ) );
@@ -237,7 +265,7 @@ class ConsultantFormHandler extends FormHandler {
 	 * @param int $user_id User ID.
 	 * @param int $post_id Post ID.
 	 */
-	private function save_meta_data( int $user_id, int $post_id ): void {
+	private function save_meta_data( $user_id, $post_id ) {
 		$fields = array(
 			'cpc_telephone'      => 'consultant-telephone',
 			'cpc_mobile'         => 'consultant-mobile',
@@ -274,16 +302,18 @@ class ConsultantFormHandler extends FormHandler {
 	 * @param array $education Education data array.
 	 * @return array Sanitized education data.
 	 */
-	private function sanitize_education( array $education ): array {
+	private function sanitize_education( $education ) {
 		$sanitized = array();
-		foreach ( $education as $entry ) {
-			$sanitized[] = array(
-				'school'     => sanitize_text_field( $entry['school'] ?? '' ),
-				'degree'     => sanitize_text_field( $entry['degree'] ?? '' ),
-				'field'      => sanitize_text_field( $entry['field'] ?? '' ),
-				'start_date' => sanitize_text_field( $entry['start_date'] ?? '' ),
-				'end_date'   => sanitize_text_field( $entry['end_date'] ?? '' ),
-			);
+		if ( is_array( $education ) ) {
+			foreach ( $education as $entry ) {
+				$sanitized[] = array(
+					'school'     => sanitize_text_field( isset( $entry['school'] ) ? $entry['school'] : '' ),
+					'degree'     => sanitize_text_field( isset( $entry['degree'] ) ? $entry['degree'] : '' ),
+					'field'      => sanitize_text_field( isset( $entry['field'] ) ? $entry['field'] : '' ),
+					'start_date' => sanitize_text_field( isset( $entry['start_date'] ) ? $entry['start_date'] : '' ),
+					'end_date'   => sanitize_text_field( isset( $entry['end_date'] ) ? $entry['end_date'] : '' ),
+				);
+			}
 		}
 		return $sanitized;
 	}

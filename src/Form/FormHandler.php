@@ -3,6 +3,14 @@ namespace ProfileCreator\Form;
 
 use ProfileCreator\User\UserCreator;
 
+/**
+ * Abstract class FormHandler
+ *
+ * Base class for form handlers in the Profile Creator plugin.
+ * Provides common functionality for form handling and validation.
+ *
+ * @package ProfileCreator\Form
+ */
 abstract class FormHandler implements FormHandlerInterface {
     /**
      * Form type identifier.
@@ -23,14 +31,14 @@ abstract class FormHandler implements FormHandlerInterface {
      *
      * @var array
      */
-    protected $errors = [];
+    protected $errors = array();
 
     /**
      * Submitted form data.
      *
      * @var array
      */
-    protected $submitted_data = [];
+    protected $submitted_data = array();
 
     /**
      * Submitted post ID.
@@ -92,7 +100,7 @@ abstract class FormHandler implements FormHandlerInterface {
      * @param array $submitted_data Submitted form data to repopulate fields.
      * @return string HTML form markup.
      */
-    public function render_form( array $errors = [], array $submitted_data = [] ): string {
+    public function render_form( $errors = array(), $submitted_data = array() ): string {
         $errors_to_use         = ! empty( $this->errors ) ? $this->errors : $errors;
         $submitted_data_to_use = ! empty( $this->submitted_data ) ? $this->submitted_data : $submitted_data;
 
@@ -321,19 +329,29 @@ abstract class FormHandler implements FormHandlerInterface {
             return;
         }
 
-        $name = sanitize_text_field( $_POST['cpc_name'] );
+        $name  = sanitize_text_field( $_POST['cpc_name'] );
         $email = sanitize_email( $_POST['cpc_email'] );
-        $bio = sanitize_textarea_field( $_POST['cpc_bio'] );
+        $bio   = sanitize_textarea_field( $_POST['cpc_bio'] );
 
-        $user_id = $this->user_creator->create_user( $name, $email, $bio );
+        $user_id = $this->user_creator->create_user( $name, $email, $bio, '' );
 
-        $post_id = wp_insert_post([
-            'post_title' => $name,
+        if ( is_wp_error( $user_id ) ) {
+            $this->errors['user_creation'] = $user_id->get_error_message();
+            return;
+        }
+
+        $post_id = wp_insert_post( array(
+            'post_title'   => $name,
             'post_content' => $bio,
-            'post_status' => 'publish',
-            'post_type' => "{$this->type}-entries",
-            'post_author' => $user_id,
-        ]);
+            'post_status'  => 'publish',
+            'post_type'    => "{$this->type}-entries",
+            'post_author'  => $user_id,
+        ) );
+
+        if ( is_wp_error( $post_id ) ) {
+            $this->errors['post_creation'] = $post_id->get_error_message();
+            return;
+        }
 
         wp_set_current_user( $user_id );
         wp_set_auth_cookie( $user_id );

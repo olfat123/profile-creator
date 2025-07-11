@@ -1,6 +1,13 @@
 <?php
 namespace ProfileCreator\Form;
 
+/**
+ * Class DipFormHandler
+ *
+ * Handles the creation of new DIP entries in the Profile Creator plugin.
+ *
+ * @package ProfileCreator\Form
+ */
 class DipFormHandler extends FormHandler {
     /**
 	 * Form type identifier.
@@ -15,7 +22,7 @@ class DipFormHandler extends FormHandler {
      * @return string Path to the form template file.
      */
     protected function get_template_path(): string {
-        return PROFILE_CREATOR_PLUGIN_DIR_PATH . '/templates/dip-form-template.php';
+        return defined( 'PROFILE_CREATOR_PLUGIN_DIR_PATH' ) ? PROFILE_CREATOR_PLUGIN_DIR_PATH . '/templates/dip-form-template.php' : '';
     }
 
     /**
@@ -27,7 +34,7 @@ class DipFormHandler extends FormHandler {
         return 'dip_submitted_posts';
     }
 
-    	/**
+    /**
 	 * Process the submitted form data.
 	 */
 	public function process_form(): void {
@@ -35,7 +42,7 @@ class DipFormHandler extends FormHandler {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( $_POST['cpc_nonce'], "cpc_create_{$this->type}_profile" ) ) {
+		if ( ! isset( $_POST['cpc_nonce'] ) || ! wp_verify_nonce( $_POST['cpc_nonce'], 'cpc_create_' . $this->type . '_profile' ) ) {
 			return;
 		}
 		$this->errors = array();
@@ -54,8 +61,8 @@ class DipFormHandler extends FormHandler {
 			return;
 		}
 
-		$name  = sanitize_text_field( $_POST['dpc_name'] );
-		$bio   = sanitize_textarea_field( $_POST['dpc_overview'] );
+		$name  = isset( $_POST['dpc_name'] ) ? sanitize_text_field( $_POST['dpc_name'] ) : '';
+		$bio   = isset( $_POST['dpc_overview'] ) ? sanitize_textarea_field( $_POST['dpc_overview'] ) : '';
 		
 		if ( ! is_user_logged_in() ) {
 			$email    = isset( $_POST['dpc_email'] ) ? sanitize_email( $_POST['dpc_email'] ) : '';
@@ -70,7 +77,7 @@ class DipFormHandler extends FormHandler {
 
 				switch ( $error_code ) {
 					case 'existing_user_email':
-						$errors['cpc_email'] = __( 'This email is already registered.', 'profile-creator ' );
+						$errors['cpc_email'] = __( 'This email is already registered.', 'profile-creator' );
 						break;
 					case 'existing_user_login':
 						$errors['user_creation'] = __( 'A user with a similar name already exists.', 'profile-creator' );
@@ -99,21 +106,20 @@ class DipFormHandler extends FormHandler {
 		$this->errors = array();
 
 		$photo_id  = $this->handle_file_upload( 'dpc_photo', $user_id );
-		$photo_url = wp_get_attachment_url( $photo_id );
+		$photo_url = $photo_id ? wp_get_attachment_url( $photo_id ) : '';
 
 		$cv_id  = $this->handle_file_upload( 'dpc_cv', $user_id );
-		$cv_url = wp_get_attachment_url( $cv_id );
+		$cv_url = $cv_id ? wp_get_attachment_url( $cv_id ) : '';
 
 		$post_id = wp_insert_post(
 			array(
 				'post_title'   => $name,
-				'post_content' => wp_kses_post( $_POST['cpc_qualifications'] ),
+				'post_content' => wp_kses_post( isset( $_POST['cpc_qualifications'] ) ? $_POST['cpc_qualifications'] : '' ),
 				'post_status'  => 'publish',
-				'post_type'    => "{$this->type}-entries",
+				'post_type'    => $this->type . '-entries',
 				'post_author'  => $user_id,
 			)
 		);
-		error_log( 'Post ID: ' . $post_id );
 		if ( is_wp_error( $post_id ) ) {
 			$this->errors['post_creation'] = __( 'Failed to create post.', 'profile-creator' );
 			echo $this->render_form( $this->errors, $submitted_data );
@@ -132,10 +138,9 @@ class DipFormHandler extends FormHandler {
 		$headers  = 'MIME-Version: 1.0' . "\r\n";
 		$headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
 		$headers .= 'From: DARPE <info@darpe.me>' . "\r\n";
-		$message  = 'New DIP entry submitted: (' . $name . ')<br>' . 'Have a good day!';
-		wp_mail( $create_consultant_email, 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
-		// wp_mail( 'info@darpe.me', 'New Consultant Submission', $message, $headers, '-f info@darpe.me' );
-		if ( ! ( empty( $current_user->user_email ) ) ) {
+		$message  = sprintf( __( 'New DIP entry submitted: (%s)<br>Have a good day!', 'profile-creator' ), esc_html( $name ) );
+		wp_mail( $create_consultant_email, __( 'New Consultant Submission', 'profile-creator' ), $message, $headers, '-f info@darpe.me' );
+		if ( ! empty( $current_user->user_email ) ) {
 			add_post_meta( $post_id, 'author_email', $current_user->user_email );
 		}
 		add_post_meta( $post_id, 'author_name', $current_user->display_name );
@@ -184,7 +189,7 @@ class DipFormHandler extends FormHandler {
 		return $errors;
 	}
 
-    	/**
+    /**
 	 * Handle file uploads.
 	 *
 	 * @param string $field_name The name of the file input field.

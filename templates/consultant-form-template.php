@@ -240,6 +240,9 @@ if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
 	<div class="cpc-education-repeater card p-3 mb-3">
 		<?php
 		$education_entries = $submitted_data['cpc_education'] ?? array( array() );
+		if( ! is_array( $education_entries ) || empty( $education_entries ) ) {
+			$education_entries = array( array() ); // Ensure at least one entry exists.
+		}
 		foreach ( $education_entries as $index => $entry ) :
 			?>
 			<div class="education-entry mb-3">
@@ -297,7 +300,7 @@ if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
 			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Services', 'profile-creator' ); ?></h3>
 			<div class="mb-3 cpc-services card p-3 <?php echo isset( $errors['cpc_services'] ) ? 'is-invalid' : ''; ?>">
 				<div class="cpc-parent-list">
-					<?php $this->render_service_checkboxes( isset( $submitted_data['cpc_services'] ) ? $submitted_data[ 'cpc_services' ] : array(), isset( $submitted_data['cpc_subservices'] ) && ! empty( $submitted_data['cpc_subservices'] ) ? $submitted_data[ 'cpc_subservices' ] : array() ); ?>
+					<?php $this->render_service_checkboxes( isset( $submitted_data['cpc_services'] ) && ! empty( $submitted_data['cpc_subservices'] ) ? $submitted_data[ 'cpc_services' ] : array(), isset( $submitted_data['cpc_subservices'] ) && ! empty( $submitted_data['cpc_subservices'] ) ? $submitted_data[ 'cpc_subservices' ] : array() ); ?>
 				</div>
 				<?php if ( isset( $errors['cpc_services'] ) ) : ?>
 					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['cpc_services'] ); ?></div>
@@ -308,7 +311,7 @@ if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
 			<h3 class="mt-4 mb-3"><?php esc_html_e( 'Sectors', 'profile-creator' ); ?></h3>
 			<div class="mb-3 cpc-sectors card p-3 <?php echo isset( $errors['cpc_sectors'] ) ? 'is-invalid' : ''; ?>">
 				<div class="cpc-parent-list">
-					<?php $this->render_sector_checkboxes( isset( $submitted_data['cpc_sectors'] ) ? $submitted_data[ 'cpc_sectors' ] : array(), isset( $submitted_data['cpc_subsectors'] ) && ! empty( $submitted_data['cpc_subsectors'] ) ? $submitted_data[ 'cpc_subsectors' ] : array() ); ?>
+					<?php $this->render_sector_checkboxes( isset( $submitted_data['cpc_sectors'] ) && ! empty( $submitted_data['cpc_subsectors'] ) ? $submitted_data[ 'cpc_sectors' ] : array(), isset( $submitted_data['cpc_subsectors'] ) && ! empty( $submitted_data['cpc_subsectors'] ) ? $submitted_data[ 'cpc_subsectors' ] : array() ); ?>
 				</div>
 				<?php if ( isset( $errors['cpc_sectors'] ) ) : ?>
 					<div class="invalid-feedback d-block"><?php echo esc_html( $errors['cpc_sectors'] ); ?></div>
@@ -322,5 +325,13 @@ if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
 	</div>
 
 	<input type="hidden" name="cpc_type" value="consultant">
-	<button type="submit" name="cpc_submit" class="btn btn-primary"><?php printf( esc_html__( 'Create %s Profile', 'profile-creator' ), 'consultant' ); ?></button>
+	<button type="submit" name="cpc_submit" class="btn btn-primary">
+		<?php
+		if ( ! empty( $submitted_data ) && null !== $submitted_data && ! empty( $submitted_data['cpc_name'] )) {
+			esc_html_e( 'Update Consultant Profile', 'profile-creator' );
+		} else {
+			esc_html_e( 'Create Consultant Profile', 'profile-creator' );
+		}
+		?>
+	</button>
 </form>
