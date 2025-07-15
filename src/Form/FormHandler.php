@@ -52,7 +52,6 @@ abstract class FormHandler implements FormHandlerInterface {
      */
     public function __construct() {
         $this->user_creator = new UserCreator();
-        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         $this->init();
     }
 
@@ -101,6 +100,16 @@ abstract class FormHandler implements FormHandlerInterface {
      * @return string HTML form markup.
      */
     public function render_form( $errors = array(), $submitted_data = array() ): string {
+        // Enqueue scripts/styles only when form is rendered
+        wp_enqueue_media();
+        wp_enqueue_script( 'jquery' );
+        wp_enqueue_style( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css', array(), '5.3.0' );
+        wp_enqueue_script( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js', array( 'jquery' ), '5.3.0', true );
+        wp_enqueue_script( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js', array( 'jquery' ), '4.0.13', true );
+        wp_enqueue_style( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css', array(), '4.0.13' );
+        wp_enqueue_script( 'cpc-consultant-form', PROFILE_CREATOR_PLUGIN_DIR_URL . '/assets/js/consultant-form.js', array( 'jquery', 'bootstrap' ), '1.0', true );
+        wp_enqueue_style( 'cpc-custom', PROFILE_CREATOR_PLUGIN_DIR_URL . '/assets/css/style.css' );
+
         $errors_to_use         = ! empty( $this->errors ) ? $this->errors : $errors;
         $submitted_data_to_use = ! empty( $this->submitted_data ) ? $this->submitted_data : $submitted_data;
 
@@ -124,7 +133,6 @@ abstract class FormHandler implements FormHandlerInterface {
         if ( file_exists( $template_path ) ) {
             include $template_path;
         } else {
-            error_log( 'Profile Creator: Form template not found at ' . $template_path );
             echo '<p>' . esc_html__( 'Error: Form template not found.', 'profile-creator' ) . '</p>';
         }
         return ob_get_clean();
@@ -302,23 +310,6 @@ abstract class FormHandler implements FormHandlerInterface {
 		}
 
 		return $result;
-	}
-
-    /**
-	 * Enqueue scripts and styles for the form.
-	 */
-	public function enqueue_scripts() {
-		wp_enqueue_media();
-		wp_enqueue_script( 'jquery' );
-		// Bootstrap CSS and JS.
-		wp_enqueue_style( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css', array(), '5.3.0' );
-		wp_enqueue_script( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js', array( 'jquery' ), '5.3.0', true );
-		// Select2.
-		wp_enqueue_script( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js', array( 'jquery' ), '4.0.13', true );
-		wp_enqueue_style( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css', array(), '4.0.13' );
-		// Custom script.
-		wp_enqueue_script( 'cpc-consultant-form', PROFILE_CREATOR_PLUGIN_DIR_URL . '/assets/js/consultant-form.js', array( 'jquery', 'bootstrap' ), '1.0', true );
-		wp_enqueue_style( 'cpc-custom', PROFILE_CREATOR_PLUGIN_DIR_URL . '/assets/css/style.css' );
 	}
 
     public function process_form(): void {

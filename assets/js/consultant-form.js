@@ -143,14 +143,14 @@ jQuery(document).ready(function($) {
     $('.collapse').on('show.bs.collapse', function () {
         var target = $('[data-bs-target="#' + this.id + '"] .toggle-icon');
         target.fadeOut(150, function() {
-        $(this).text('-').fadeIn(150);
+            $(this).text('-').fadeIn(150);
         });
     });
     
     $('.collapse').on('hide.bs.collapse', function () {
         var target = $('[data-bs-target="#' + this.id + '"] .toggle-icon');
         target.fadeOut(150, function() {
-        $(this).text('+').fadeIn(150);
+            $(this).text('+').fadeIn(150);
         });
     });
       
@@ -159,17 +159,25 @@ jQuery(document).ready(function($) {
         document.querySelector('.select2-search__field').focus();
     });
 
-    document.getElementById('dpc_photo').addEventListener('change', function (event) {
-        const preview = document.getElementById('photo-preview');
-        const file = event.target.files[0];
-    
+    // Hide the photo preview on page load
+    $('#photo-preview').addClass('d-none');
+
+    // Convert vanilla JS to jQuery for photo preview
+    $('#dpc_photo').on('change', function (event) {
+        var preview = $('#photo-preview');
+        var file = event.target.files[0];
+
         if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
+            var reader = new FileReader();
             reader.onload = function (e) {
-                preview.src = e.target.result;
-                preview.classList.remove('d-none');
+                preview.attr('src', e.target.result);
+                preview.removeClass('d-none');
             };
             reader.readAsDataURL(file);
+        } else {
+            // Hide preview if no valid image is selected
+            preview.addClass('d-none');
+            preview.attr('src', '');
         }
     });
 });

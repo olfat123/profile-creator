@@ -7,6 +7,20 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
+.cpc-profile-form .form-label, .cpc-profile-form .form-check-label {
+    font-weight: 400;
+}
+
+.cpc-profile-form .form-label {
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.cpc-profile-form .form-check-label {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
 .cpc-profile-form .wp-editor-wrap {
     margin-bottom: 1rem;
 }

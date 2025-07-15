@@ -325,7 +325,7 @@ if ( ! empty( $submitted_post ) && null !== $submitted_post ) {
 	</div>
 
 	<input type="hidden" name="cpc_type" value="consultant">
-	<button type="submit" name="cpc_submit" class="btn btn-primary">
+	<button type="submit" name="cpc_submit">
 		<?php
 		if ( ! empty( $submitted_data ) && null !== $submitted_data && ! empty( $submitted_data['cpc_name'] )) {
 			esc_html_e( 'Update Consultant Profile', 'profile-creator' );
