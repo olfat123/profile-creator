@@ -189,45 +189,13 @@ class DipFormHandler extends FormHandler {
 		return $errors;
 	}
 
-    /**
-	 * Handle file uploads.
-	 *
-	 * @param string $field_name The name of the file input field.
-	 * @param int    $user_id    The ID of the user uploading the file.
-	 * @return int|null Attachment ID on success, null on failure.
-	 */
-	private function handle_file_upload( string $field_name, int $user_id ): ?int {
-		if ( ! empty( $_FILES[ $field_name ]['name'] ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-			$upload = wp_handle_upload( $_FILES[ $field_name ], array( 'test_form' => false ) );
-
-			if ( $upload && ! isset( $upload['error'] ) ) {
-				$attachment = array(
-					'post_mime_type' => $upload['type'],
-					'post_title'     => sanitize_file_name( $_FILES[ $field_name ]['name'] ),
-					'post_content'   => '',
-					'post_status'    => 'inherit',
-					'post_author'    => $user_id,
-				);
-
-				$attach_id = wp_insert_attachment( $attachment, $upload['file'] );
-				require_once ABSPATH . 'wp-admin/includes/image.php';
-				$attach_data = wp_generate_attachment_metadata( $attach_id, $upload['file'] );
-				wp_update_attachment_metadata( $attach_id, $attach_data );
-
-				return $attach_id;
-			}
-		}
-		return null;
-	}
-
 	/**
 	 * Save form meta data.
 	 *
 	 * @param int $user_id User ID.
 	 * @param int $post_id Post ID.
 	 */
-	private function save_meta_data( int $user_id, int $post_id ): void {
+	protected function save_meta_data( int $user_id, int $post_id ): void {
 		$fields = array(
 			'dpc_websites'     => 'general_website',
 			'dpc_email'        => 'general_email',
